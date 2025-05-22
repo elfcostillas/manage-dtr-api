@@ -3,6 +3,7 @@
 use App\Http\Controllers\MasterData\EmployeeController;
 use App\Http\Controllers\Timekeeping\FTPApprovalController;
 use App\Http\Controllers\Timekeeping\FTPController;
+use App\Http\Controllers\Timekeeping\PayrollPeriodController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,10 @@ Route::prefix('master-data')->group(function(){
 });
 
 Route::prefix('timekeeping')->group(function(){ 
+    Route::prefix('semi-payroll-period')->group(function(){ 
+        Route::get('list',[PayrollPeriodController::class,'list']);
+    });
+
     Route::prefix('ftp')->group(function(){ 
         Route::get('list/{emp_id?}',[FTPController::class,'list']);
 
@@ -41,7 +46,7 @@ Route::prefix('timekeeping')->group(function(){
         // Route::post('edit',[FTPController::class,'edit']);
     });
 
-     Route::prefix('ftp-approval')->group(function(){ 
+    Route::prefix('ftp-approval')->group(function(){ 
         Route::get('list/{emp_id?}',[FTPApprovalController::class,'list']);
 
         Route::post('approve',[FTPApprovalController::class,'approve']);

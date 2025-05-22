@@ -22,7 +22,7 @@ class FTPController extends Controller
 
         $result = $this->ftp_repo->list($emp_id);
 
-        return $this->jsonResponse($result,null,'OK');
+        return $this->jsonResponse($result,null,'success');
     }
 
     public function store(Request $request)
