@@ -3,6 +3,7 @@
 use App\Http\Controllers\MasterData\EmployeeController;
 use App\Http\Controllers\Timekeeping\FTPApprovalController;
 use App\Http\Controllers\Timekeeping\FTPController;
+use App\Http\Controllers\Timekeeping\ManageDTRController;
 use App\Http\Controllers\Timekeeping\PayrollPeriodController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -52,4 +53,9 @@ Route::prefix('timekeeping')->group(function(){
         Route::post('approve',[FTPApprovalController::class,'approve']);
         // Route::post('edit',[FTPController::class,'edit']);
     });
+
+    Route::prefix('manag-dtr-semi')->group(function(){
+        Route::get('data/{period_id}/{emp_id}',[ManageDTRController::class,'data']);
+    });
 });
+
