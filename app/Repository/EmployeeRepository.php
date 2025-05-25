@@ -68,6 +68,16 @@ class EmployeeRepository
 
         return $list;
     }
+
+    public function employeeActiveSemiMonthly()
+    {
+        $result = DB::table('employees')
+            ->where('exit_status',1)
+            ->where('emp_level','<',6)
+            ->get();
+        
+        return $result;
+    }
 }
 
 /*

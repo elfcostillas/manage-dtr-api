@@ -38,6 +38,8 @@ Route::prefix('master-data')->group(function(){
 Route::prefix('timekeeping')->group(function(){ 
     Route::prefix('semi-payroll-period')->group(function(){ 
         Route::get('list',[PayrollPeriodController::class,'list']);
+        Route::get('index',[PayrollPeriodController::class,'index']);
+        Route::post('prepare',[PayrollPeriodController::class,'prepare']);
     });
 
     Route::prefix('ftp')->group(function(){ 

@@ -46,38 +46,114 @@ class DTRService
         
     }
 
+    // ->where('biometric_id','=',$employee->biometric_id)
+
     public function regular($employee,$period)
     {
-        $result = DB::table('edtr') //edtr_detailed
-            // ->where('emp_id','=',$employee->id)
+        $result = DB::table('edtr_detailed') //edtr_detailed
+            ->where('emp_id','=',$employee->id)
             ->select(
+                'id',
+                'emp_id',
+                'dtr_date',
                 'time_in',
-                'time_out'
+                'time_out',
+                'time_in_id',
+                'time_out_id'
             )
-            ->where('biometric_id','=',$employee->biometric_id)
             ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
-        return $result->get();
+        return $result->orderBy('dtr_date','ASC')->get();
     }
 
-    public function restday(){
+    public function restday($employee,$period)
+    {
+            $result = DB::table('edtr_detailed') //edtr_detailed
+            ->where('emp_id','=',$employee->id)
+            ->select(
+                'id',
+                'emp_id',
+                'dtr_date',
+                'time_in',
+                'time_out',
+                'time_in_id',
+                'time_out_id'
+            )
+            ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
+         return $result->orderBy('dtr_date','ASC')->get();
     }
 
-    public function special_hol(){
+    public function special_hol($employee,$period)
+    {
+        $result = DB::table('edtr_detailed') //edtr_detailed
+            ->where('emp_id','=',$employee->id)
+            ->select(
+                'id',
+                'emp_id',
+                'dtr_date',
+                'time_in',
+                'time_out',
+                'time_in_id',
+                'time_out_id'
+            )
+            ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
+        return $result->orderBy('dtr_date','ASC')->get();
     }
 
-    public function legal_hol(){
+    public function legal_hol($employee,$period)
+    {
+        $result = DB::table('edtr_detailed') //edtr_detailed
+            ->where('emp_id','=',$employee->id)
+            ->select(
+                'id',
+                'emp_id',
+                'dtr_date',
+                'time_in',
+                'time_out',
+                'time_in_id',
+                'time_out_id'
+            )
+            ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
+        return $result->orderBy('dtr_date','ASC')->get();
     }
 
-    public function dbl_special(){
+    public function dbl_special($employee,$period)
+    {
+        $result = DB::table('edtr_detailed') //edtr_detailed
+            ->where('emp_id','=',$employee->id)
+            ->select(
+                'id',
+                'emp_id',
+                'dtr_date',
+                'time_in',
+                'time_out',
+                'time_in_id',
+                'time_out_id'
+            )
+            ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
+         return $result->orderBy('dtr_date','ASC')->get();
     }
 
-    public function dbl_legal(){
+    public function dbl_legal($employee,$period)
+    {
+        $result = DB::table('edtr_detailed') //edtr_detailed
+            ->where('emp_id','=',$employee->id)
+            ->select(
+                'id',
+                'emp_id',
+                'dtr_date',
+                'time_in',
+                'time_out',
+                'time_in_id',
+                'time_out_id'
+            )
+            ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
+        return $result->orderBy('dtr_date','ASC')->get();
     }
 
 }
