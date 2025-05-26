@@ -3,6 +3,9 @@
 namespace App\Service;
 
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Expr\FuncCall;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 class DTRService
 {
@@ -12,6 +15,7 @@ class DTRService
     public function handleGetDTR($period_id,$emp_id)
     {
         $data = [];
+        $data['raw_logs'] = [];
 
         $collection = collect($this->day_types);
 
@@ -40,10 +44,28 @@ class DTRService
                 }
             }
 
+            $data['raw_logs'] = $this->raw_logs($employee,$period);
+
             return $data;
 
         }
         
+    }
+
+    public function raw_logs($employee,$period)
+    {
+        // dd($period);
+        $date_from = Carbon::createFromFormat('Y-m-d',$period->date_from);
+        $date_to = Carbon::createFromFormat('Y-m-d',$period->date_to)->add('1 Day');
+        //select line_id,punch_date,punch_time,cstate,src,src_id,emp_id,biometric_id 
+        //from edtr_raw where biometric_id =  and punch_date 
+
+        $result = DB::table('edtr_raw') //edtr_detailed
+            ->where('biometric_id','=',$employee->biometric_id)
+            ->select('line_id','punch_date','punch_time','cstate','src','src_id','emp_id','biometric_id')
+            ->whereBetween('punch_date',[$date_from->format('Y-m-d'),$date_to->format('Y-m-d')]);
+
+        return $result->orderBy('punch_date','ASC')->orderBy('punch_time','ASC')->get();
     }
 
     // ->where('biometric_id','=',$employee->biometric_id)
