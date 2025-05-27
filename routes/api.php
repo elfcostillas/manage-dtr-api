@@ -56,8 +56,12 @@ Route::prefix('timekeeping')->group(function(){
         // Route::post('edit',[FTPController::class,'edit']);
     });
 
-    Route::prefix('manag-dtr-semi')->group(function(){
+    Route::prefix('manage-dtr-semi')->group(function(){
         Route::get('data/{period_id}/{emp_id}',[ManageDTRController::class,'data']);
+
+        Route::get('draw-logs/{period_id}/{emp_id}',[ManageDTRController::class,'drawLogs']);
+        Route::post('draw-logs',[ManageDTRController::class,'drawLogs']);
+        
     });
 });
 

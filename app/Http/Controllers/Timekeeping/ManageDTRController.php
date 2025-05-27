@@ -22,7 +22,14 @@ class ManageDTRController extends Controller
         $array = collect(['regular','restday','special_hol','legal_hol','dbl_special','dbl_legal']);
         $result = $this->dtr_service->handleGetDTR((int) $request->period_id,(int) $request->emp_id);
         
-         return $this->jsonResponse($result,null,'success');
+        return $this->jsonResponse($result,null,'success');
 
+    }
+
+    public function drawLogs(Request $request)
+    {
+        // dd($request->emp_id,$request->period_id);
+        $result = $this->dtr_service->handeDrawRequest($request->emp_id,$request->period_id);
+        return $this->jsonResponse($result,null,'success');
     }
 }

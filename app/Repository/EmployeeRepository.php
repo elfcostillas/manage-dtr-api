@@ -78,6 +78,13 @@ class EmployeeRepository
         
         return $result;
     }
+
+    public function getEmployee($emp_id)
+    {
+        return DB::table('employees')
+            ->where('id','=',$emp_id)
+            ->first();
+    }
 }
 
 /*

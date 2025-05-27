@@ -2,6 +2,9 @@
 
 namespace App\Service;
 
+use App\Repository\DTRRepository;
+use App\Repository\EmployeeRepository;
+use App\Repository\SemiMonthlyPayrollPeriodRepository;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\FuncCall;
 use Carbon\Carbon;
@@ -10,6 +13,10 @@ use Carbon\CarbonPeriod;
 class DTRService
 {
     //
+    public function __construct(private DTRRepository $dtr_repo,private EmployeeRepository $emp_repo,private SemiMonthlyPayrollPeriodRepository $payperiod_repo)
+    {
+        
+    }
     private $day_types = ['regular','restday','special_hol','legal_hol','dbl_special','dbl_legal'];
 
     public function handleGetDTR($period_id,$emp_id)
@@ -49,6 +56,56 @@ class DTRService
             return $data;
 
         }
+        
+    }
+
+    public function handeDrawRequest($emp_id,$period_id)
+    {   
+        $employee = $this->emp_repo->getEmployee($emp_id);
+        $period = $this->payperiod_repo->find($period_id);
+
+        $dtr = $this->dtr_repo->getDTR($period,$employee);
+
+        foreach($dtr as $row){
+            // time in
+            $time_in = $this->dtr_repo->getLog($employee,$row->dtr_date,'C/In');
+            
+            //time out
+            $time_out = $this->dtr_repo->getLog($employee,$row->dtr_date,'C/Out');
+            
+            //ot in 
+            $ot_in = $this->dtr_repo->getLog($employee,$row->dtr_date,'OT/In');
+
+            //ot out
+            $ot_out = $this->dtr_repo->getLog($employee,$row->dtr_date,'OT/Out');
+
+            if($time_in){
+                $row->time_in_id = $time_in->line_id;
+                $row->time_in = $time_in->punch_time;
+            }
+
+            if($time_out){
+                $row->time_out_id = $time_out->line_id;
+                $row->time_out = $time_out->punch_time;
+            }
+
+            if($ot_in){
+                 $row->ot_in_id = $ot_in->line_id;
+                $row->ot_in = $ot_in->punch_time;
+            }
+
+            if($ot_out){
+                $row->ou_out_id = $ot_out->line_id;
+                $row->ou_out = $ot_out->punch_time;
+            }
+
+            DB::table('edtr_detailed')
+            ->where('id', $row->id)
+            ->update((array) $row);
+
+        }
+        
+        return $dtr;
         
     }
 
