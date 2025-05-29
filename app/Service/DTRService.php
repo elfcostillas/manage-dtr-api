@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\CustomClass\CustomRequest;
 use App\CustomClass\LegalHoliday;
 use App\CustomClass\RegularDay;
 use App\CustomClass\SpecialHoliday;
@@ -106,9 +107,21 @@ class DTRService
                 $row->ot_out = $ot_out->punch_time;
             }
 
+            // unset($row->hol_code);
+            // unset($row->sched_time_in);
+            // unset($row->sched_time_out);
+            // unset($row->sched_out_am);
+            // unset($row->sched_in_pm);
+
+            // DB::table('edtr_detailed')
+            //     ->where('id', $row->id)
+            //     ->update((array) $row);
+
+            $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
             DB::table('edtr_detailed')
-            ->where('id', $row->id)
-            ->update((array) $row);
+                ->where('id', $row->id)
+                ->update($new_arr);
 
         }
         
@@ -132,9 +145,17 @@ class DTRService
             $row->ot_out_id = null;
             $row->ot_out = null;
 
+            // unset($row->hol_code);
+            // unset($row->sched_time_in);
+            // unset($row->sched_time_out);
+            // unset($row->sched_out_am);
+            // unset($row->sched_in_pm);
+
+            $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
             DB::table('edtr_detailed')
                 ->where('id', $row->id)
-                ->update((array) $row);
+                ->update($new_arr);
         }
     }
 

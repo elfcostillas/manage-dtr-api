@@ -4,6 +4,8 @@ namespace App\CustomClass;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class Day
 {
@@ -13,6 +15,9 @@ class Day
     public $period_object;
 
     public $sched_time_in;
+    public $sched_am_time_out;
+
+    public $sched_pm_time_in;
     public $sched_time_out;
 
     public $actual_time_in;
@@ -60,6 +65,9 @@ class Day
 
         $this->makeSchedule(); // make schedule; set date to next day
        
+        $mins = 0;
+        $hrs = 0;
+        $late_minutes = 0;
 
         if(!is_null($time_in) && !is_null($time_out)){
             // dd($this->convertToTime($this->log_object->dtr_date,$this->log_object->time_in)->format('Y-m-d H:i'));
@@ -68,17 +76,61 @@ class Day
             $period = CarbonPeriod::create($this->actual_time_in,'1 Minute',$this->actual_time_out);
 
             foreach($period as $minute){
-                
-
-                // echo $minute->format('Y-m-d H:i') .'<br>';
-                if($minute->between($this->sched_time_in,$this->sched_time_out))
-                {
-                    dd('count');
+              /*
+                dd($minute,$this->sched_time_in,$this->sched_am_time_out);
+                if($minute < $this->actual_time_in && ($minute->between($this->sched_time_in,$this->sched_am_time_out))){
+                    $late_minutes++;
+                    dd('imlate');
                 }
+
+                if($minute < $this->actual_time_in && ($minute->between($this->sched_pm_time_in,$this->sched_time_out))){
+                    $late_minutes++;
+                     dd('imlate');
+                }
+
+               
+                if($minute->between($this->sched_time_in,$this->sched_am_time_out) || $minute->between($this->sched_pm_time_in,$this->sched_time_out))
+                {
+                    $mins++;
+                }else{
+                    if($this->actual_time_in->between($this->sched_time_in->addMinute(),$this->sched_am_time_out)){
+                        $late_minutes++;
+                        // echo $minute->format('Y-m-d H:i').'<br>';
+                        dd(
+                            $this->sched_time_in,
+                            $this->actual_time_in,
+                            $minute
+
+                        );
+                    }
+
+                    if($this->actual_time_in->between($this->sched_pm_time_in->addMinute(),$this->sched_time_out)){
+                        $late_minutes++;
+                        // echo $minute->format('Y-m-d H:i').'<br>';
+                    }
+                }
+                    */
             }
+
+            //set late
+            // if($late_minutes>0){
+                
+            // }
+            $this->log_object->late = $late_minutes;
+           
+
+            $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
+
+            DB::table('edtr_detailed')
+                ->where('id', $this->log_object->id)
+                ->update($new_arr);
+
         }else{
 
         }
+
+        // dd($this->log_object);
+        // dd(Schema::getColumnListing('edtr_detailed'));
 
     }
 
@@ -86,15 +138,36 @@ class Day
     {
         $this->sched_time_in = $this->convertToTime($this->log_object->dtr_date,$this->log_object->sched_time_in);
 
-        /* 
-            check if schedules drags to next day  
-            if true set the date to next date 
-        */
+        if(strtotime($this->log_object->sched_time_in) < strtotime($this->log_object->sched_out_am)){
+            $this->sched_am_time_out = $this->convertToTime($this->log_object->dtr_date,$this->log_object->sched_out_am);
+        }else{
+            $this->sched_am_time_out = $this->convertToTime($this->convertToDate($this->log_object->dtr_date)->addDay()->format('Y-m-d'),$this->log_object->sched_out_am);
+        }
+
+        if(strtotime($this->log_object->sched_time_in) < strtotime($this->log_object->sched_in_pm)){
+            $this->sched_pm_time_in = $this->convertToTime($this->log_object->dtr_date,$this->log_object->sched_in_pm);
+        }else{
+            $this->sched_pm_time_in = $this->convertToTime($this->convertToDate($this->log_object->dtr_date)->addDay()->format('Y-m-d'),$this->log_object->sched_in_pm);
+        }
+
         if(strtotime($this->log_object->sched_time_in) < strtotime($this->log_object->sched_time_out)){
             $this->sched_time_out = $this->convertToTime($this->log_object->dtr_date,$this->log_object->sched_time_out);
         }else{
             $this->sched_time_out = $this->convertToTime($this->convertToDate($this->log_object->dtr_date)->addDay()->format('Y-m-d'),$this->log_object->sched_time_out);
         }
+    
+
+        // dd( $this->sched_time_in,$this->sched_am_time_out, $this->sched_pm_time_in,$this->sched_time_out);
+
+            //$this->sched_am_time_out;
+
+        // $this->sched_pm_time_in;
+
+        /* 
+            check if schedules drags to next day  
+            if true set the date to next date 
+        */
+      
     }
 
     public function makeworkedTime()
