@@ -34,4 +34,11 @@ class FTPRepository
 
         return $result->get();
     }
+
+    public function getFTP($ftp_id)
+    {
+        return DB::table('ftp_detailed')
+                ->where('id','=',$ftp_id)
+                ->first();
+    }
 }

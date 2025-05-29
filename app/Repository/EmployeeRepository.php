@@ -16,9 +16,10 @@ class EmployeeRepository
             $result = DB::table('employees')
                 ->select(DB::raw("id, biometric_id,lastname,firstname,concat(ifnull(lastname,''),', ',ifnull(firstname,'')) as emp_name,concat(ifnull(lastname,''),', ',ifnull(firstname,'')) as label"))
                 ->where('job_title_id','!=',130)
+                ->where('emp_level','<',6)
                 ->orderBy('lastname','asc')
                 ->orderBy('firstname','asc');
-
+              
                 if($type == 'active'){
                     $result->where('exit_status',1);
                 }else{

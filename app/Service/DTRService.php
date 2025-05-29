@@ -2,6 +2,9 @@
 
 namespace App\Service;
 
+use App\CustomClass\LegalHoliday;
+use App\CustomClass\RegularDay;
+use App\CustomClass\SpecialHoliday;
 use App\Repository\DTRRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\SemiMonthlyPayrollPeriodRepository;
@@ -17,7 +20,9 @@ class DTRService
     {
         
     }
-    private $day_types = ['regular','restday','special_hol','legal_hol','dbl_special','dbl_legal'];
+    
+    //private $day_types = ['regular','restday','special_hol','legal_hol','dbl_special','dbl_legal'];
+    private $day_types = ['regular','special_hol','legal_hol','dbl_special','dbl_legal'];
 
     public function handleGetDTR($period_id,$emp_id)
     {
@@ -59,12 +64,14 @@ class DTRService
         
     }
 
-    public function handeDrawRequest($emp_id,$period_id)
+    public function handleDrawRequest($emp_id,$period_id)
     {   
         $employee = $this->emp_repo->getEmployee($emp_id);
         $period = $this->payperiod_repo->find($period_id);
 
         $dtr = $this->dtr_repo->getDTR($period,$employee);
+
+        $this->clearDailyLogsToProcess($dtr);
 
         foreach($dtr as $row){
             // time in
@@ -95,8 +102,8 @@ class DTRService
             }
 
             if($ot_out){
-                $row->ou_out_id = $ot_out->line_id;
-                $row->ou_out = $ot_out->punch_time;
+                $row->ot_out_id = $ot_out->line_id;
+                $row->ot_out = $ot_out->punch_time;
             }
 
             DB::table('edtr_detailed')
@@ -107,6 +114,28 @@ class DTRService
         
         return $dtr;
         
+    }
+
+    public function clearDailyLogsToProcess($dtr)
+    {
+        foreach($dtr as $row){
+
+            $row->time_in_id = null;
+            $row->time_in = null;
+
+            $row->time_out_id = null;
+            $row->time_out = null;
+
+            $row->ot_in_id = null;
+            $row->ot_in = null;
+
+            $row->ot_out_id = null;
+            $row->ot_out = null;
+
+            DB::table('edtr_detailed')
+                ->where('id', $row->id)
+                ->update((array) $row);
+        }
     }
 
     public function raw_logs($employee,$period)
@@ -129,20 +158,37 @@ class DTRService
 
     public function regular($employee,$period)
     {
-        $result = DB::table('edtr_detailed') //edtr_detailed
-            ->where('emp_id','=',$employee->id)
-            ->select(
-                'id',
-                'emp_id',
-                'dtr_date',
-                'time_in',
-                'time_out',
-                'time_in_id',
-                'time_out_id'
-            )
-            ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
+        // $holidays = $this->dtr_repo->get_holidays($period,$employee);
 
-        return $result->orderBy('dtr_date','ASC')->get();
+        // $result = DB::table('edtr_detailed') 
+        //     ->leftJoinSub($holidays,'holidays',function($join){
+        //         $join->on('holidays.holiday_date','=','edtr_detailed.dtr_date');
+        //     })
+        //     ->leftJoin('work_schedules','edtr_detailed.schedule_id','=','work_schedules.id') //N work_schedules ON edtr_detailed.schedule_id = work_schedules.id 
+        //     ->where('emp_id','=',$employee->id)
+        //     ->select(
+        //         'edtr_detailed.id',
+        //         'emp_id',
+        //         'dtr_date',
+        //         'edtr_detailed.time_in',
+        //         'edtr_detailed.time_out',
+        //         'time_in_id',
+        //         'time_out_id',
+        //         'ot_in',
+        //         'ot_in_id',
+        //         'ot_out',
+        //         'ot_out_id',
+        //         'hol_code',
+        //         'work_schedules.time_in as sched_time_in',
+        //         'work_schedules.time_out as sched_time_out'
+        //     )
+        //     ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
+
+        // return $result->orderBy('dtr_date','ASC')->get();
+
+        $result =  $this->dtr_repo->getDTR($period,$employee);
+
+        return $result;
     }
 
     public function restday($employee,$period)
@@ -156,7 +202,11 @@ class DTRService
                 'time_in',
                 'time_out',
                 'time_in_id',
-                'time_out_id'
+                'time_out_id',
+                'ot_in',
+                'ot_in_id',
+                'ot_out',
+                'ot_out_id'
             )
             ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
@@ -174,7 +224,11 @@ class DTRService
                 'time_in',
                 'time_out',
                 'time_in_id',
-                'time_out_id'
+                'time_out_id',
+                'ot_in',
+                'ot_in_id',
+                'ot_out',
+                'ot_out_id'
             )
             ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
@@ -192,7 +246,11 @@ class DTRService
                 'time_in',
                 'time_out',
                 'time_in_id',
-                'time_out_id'
+                'time_out_id',
+                'ot_in',
+                'ot_in_id',
+                'ot_out',
+                'ot_out_id'
             )
             ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
@@ -210,7 +268,11 @@ class DTRService
                 'time_in',
                 'time_out',
                 'time_in_id',
-                'time_out_id'
+                'time_out_id',
+                'ot_in',
+                'ot_in_id',
+                'ot_out',
+                'ot_out_id'
             )
             ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
@@ -228,11 +290,47 @@ class DTRService
                 'time_in',
                 'time_out',
                 'time_in_id',
-                'time_out_id'
+                'time_out_id',
+                'ot_in',
+                'ot_in_id',
+                'ot_out',
+                'ot_out_id'
             )
             ->whereBetween('dtr_date',[$period->date_from,$period->date_to]);
 
         return $result->orderBy('dtr_date','ASC')->get();
+    }
+
+    public function handleComputeRequest($emp_id,$period_id)
+    {
+        $employee = $this->emp_repo->getEmployee($emp_id);
+        $period = $this->payperiod_repo->find($period_id);
+
+        $dtr = $this->dtr_repo->getDTR($period,$employee);
+
+        //Act as factory
+        foreach($dtr as $day){
+            switch($day->hol_code){
+                case 'reghol' :
+                    $day = new LegalHoliday($day,$employee,$period);
+                    break;
+
+                case 'sphol' :
+                    $day = new SpecialHoliday($day,$employee,$period);
+                    break;
+
+                // case 'dblreghol' :break;
+                // case 'dblsphol' : break;
+                
+                default :
+                    $day = new RegularDay($day,$employee,$period);
+                    break;
+            }
+
+            $day->compute();
+            // $day->save();
+        }
+
     }
 
 }

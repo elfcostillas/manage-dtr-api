@@ -31,10 +31,27 @@ class PayrollPeriodService
             
             foreach($employees as $employee){
                 foreach($dates as $date){
+
+                    // dd($date->shortEnglishDayOfWeek);
+                    $sched = null;
+                    switch($date->shortEnglishDayOfWeek){
+                        case 'Sat' :
+                                $sched = $employee->sched_sat;
+                            break;
+
+                        case 'Sun' :
+                                $sched = null;  //$employee->sched_mtwtf;
+                            break;
+                        default :
+                                $sched = $employee->sched_mtwtf;
+                            break;
+                    };
+
                     $dtr_array = [
                         'biometric_id' => $employee->biometric_id,
                         'emp_id' => $employee->id,
-                        'dtr_date' => $date->format('Y-m-d')
+                        'dtr_date' => $date->format('Y-m-d'),
+                        'schedule_id' => $sched
                     ];
                     array_push($dtr_tmp,$dtr_array);
                 }
