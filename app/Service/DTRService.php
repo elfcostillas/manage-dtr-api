@@ -58,6 +58,7 @@ class DTRService
             }
 
             $data['raw_logs'] = $this->raw_logs($employee,$period);
+            $data['sched'] = $this->dtr_repo->sched();
 
             return $data;
 
@@ -76,36 +77,76 @@ class DTRService
 
         foreach($dtr as $row){
             // time in
-            $time_in = $this->dtr_repo->getLog($employee,$row->dtr_date,'C/In');
-            
-            //time out
-            $time_out = $this->dtr_repo->getLog($employee,$row->dtr_date,'C/Out');
-            
-            //ot in 
-            $ot_in = $this->dtr_repo->getLog($employee,$row->dtr_date,'OT/In');
-
-            //ot out
-            $ot_out = $this->dtr_repo->getLog($employee,$row->dtr_date,'OT/Out');
-
-            if($time_in){
+            $time_in = $this->dtr_repo->getLog($employee,$row,'C/In');
+            if(isset($time_in)){
                 $row->time_in_id = $time_in->line_id;
                 $row->time_in = $time_in->punch_time;
-            }
+                
+                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
 
-            if($time_out){
+                DB::table('edtr_detailed')
+                    ->where('id', $row->id)
+                    ->update($new_arr);
+            }
+            
+            //time out
+            if(isset($time_in))
+            $time_out = $this->dtr_repo->getLog($employee,$row,'C/Out');
+
+            if(isset($time_out)){
                 $row->time_out_id = $time_out->line_id;
                 $row->time_out = $time_out->punch_time;
-            }
 
-            if($ot_in){
-                 $row->ot_in_id = $ot_in->line_id;
+                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
+                DB::table('edtr_detailed')
+                    ->where('id', $row->id)
+                    ->update($new_arr);
+            }
+            
+            //ot in 
+            if(isset($time_in))
+            $ot_in = $this->dtr_repo->getLog($employee,$row,'OT/In');
+
+            if(isset($ot_in)){
+                $row->ot_in_id = $ot_in->line_id;
                 $row->ot_in = $ot_in->punch_time;
+
+                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
+                DB::table('edtr_detailed')
+                    ->where('id', $row->id)
+                    ->update($new_arr);
             }
 
-            if($ot_out){
+            //ot out
+            if(isset($time_in))
+            $ot_out = $this->dtr_repo->getLog($employee,$row,'OT/Out');
+
+            if(isset($ot_out)){
                 $row->ot_out_id = $ot_out->line_id;
                 $row->ot_out = $ot_out->punch_time;
+
+                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
+                DB::table('edtr_detailed')
+                    ->where('id', $row->id)
+                    ->update($new_arr);
             }
+
+            // if(isset($time_in)){
+            //     $row->time_in_id = $time_in->line_id;
+            //     $row->time_in = $time_in->punch_time;
+            // }
+
+            // if(isset($ot_in)){
+            //     $row->ot_in_id = $ot_in->line_id;
+            //     $row->ot_in = $ot_in->punch_time;
+            // }
+
+           
+
+        
 
             // unset($row->hol_code);
             // unset($row->sched_time_in);
@@ -117,11 +158,12 @@ class DTRService
             //     ->where('id', $row->id)
             //     ->update((array) $row);
 
-            $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+           
 
-            DB::table('edtr_detailed')
-                ->where('id', $row->id)
-                ->update($new_arr);
+            unset($time_in);
+            unset($time_out);
+            unset($ot_in);
+            unset($ot_out);
 
         }
         

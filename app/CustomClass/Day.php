@@ -57,67 +57,95 @@ class Day
         return Carbon::createFromFormat('Y-m-d H:i',$string);
     }
 
+    public function computeLate()
+    {
+            $late_am = 0;
+            $late_pm = 0;
+            $late_minutes = 0;
+
+            if($this->actual_time_in > $this->sched_time_in && ($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')))
+            {
+                $late_am = $this->actual_time_in->diff($this->sched_time_in);
+                $late_minutes =  ($late_am->i + ($late_am->h * 60));
+            }
+
+            // tardy on afternoon
+            if($this->actual_time_in > $this->sched_pm_time_in && ($this->actual_time_in < $this->sched_time_out))
+            {
+                $late_pm = $this->actual_time_in->diff($this->sched_pm_time_in);
+                $late_minutes =  ($late_pm->i + ($late_pm->h * 60));
+            }
+
+            $this->log_object->late = $late_minutes;
+    }
+
+    public function computeUnderTime()
+    {
+        $ut_am = 0;
+        $ut_pm = 0;
+        $ut_mins = 0;
+        
+        if($this->actual_time_out < $this->sched_am_time_out){
+            $ut_am = $this->sched_am_time_out->diff($this->actual_time_out);
+            $ut_mins += ($ut_am->i + ($ut_am->h * 60));
+        }
+
+        if(($this->actual_time_out > $this->sched_pm_time_in) && ($this->actual_time_out < $this->sched_time_out) ){
+            $ut_pm = $this->sched_time_out->diff($this->actual_time_out);
+            // dd($this->sched_time_out,$this->actual_time_out);
+            $ut_mins += ($ut_pm->i + ($ut_pm->h * 60));
+        }
+
+        $this->log_object->under_time = $ut_mins;
+    }
+
+    public function computeHours()
+    {
+        $hrs = 8;
+        $day = 1;
+
+        $am_hrs = 0;
+
+        // dd($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes'));
+
+        if($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')){
+            $am_hrs = 4;
+        }else{
+            $am_hrs = 0;
+        }
+
+        if($this->actual_time_out < $this->sched_pm_time_in){
+            $pm_hrs = 0;
+        }else{
+            $pm_hrs = 4;
+        }
+
+        $this->log_object->hrs = $am_hrs + $pm_hrs;
+        $this->log_object->ndays =  round($this->log_object->hrs /8,2);
+    }
+
     public function compute()
     {
        
         $time_in = $this->log_object->time_in;
         $time_out = $this->log_object->time_out;
 
-        $this->makeSchedule(); // make schedule; set date to next day
+        
        
         $mins = 0;
         $hrs = 0;
         $late_minutes = 0;
 
         if(!is_null($time_in) && !is_null($time_out)){
+            $this->makeSchedule(); // make schedule; set date to next day
             // dd($this->convertToTime($this->log_object->dtr_date,$this->log_object->time_in)->format('Y-m-d H:i'));
             $this->makeworkedTime();
-
-            $period = CarbonPeriod::create($this->actual_time_in,'1 Minute',$this->actual_time_out);
-
-            foreach($period as $minute){
-              /*
-                dd($minute,$this->sched_time_in,$this->sched_am_time_out);
-                if($minute < $this->actual_time_in && ($minute->between($this->sched_time_in,$this->sched_am_time_out))){
-                    $late_minutes++;
-                    dd('imlate');
-                }
-
-                if($minute < $this->actual_time_in && ($minute->between($this->sched_pm_time_in,$this->sched_time_out))){
-                    $late_minutes++;
-                     dd('imlate');
-                }
-
-               
-                if($minute->between($this->sched_time_in,$this->sched_am_time_out) || $minute->between($this->sched_pm_time_in,$this->sched_time_out))
-                {
-                    $mins++;
-                }else{
-                    if($this->actual_time_in->between($this->sched_time_in->addMinute(),$this->sched_am_time_out)){
-                        $late_minutes++;
-                        // echo $minute->format('Y-m-d H:i').'<br>';
-                        dd(
-                            $this->sched_time_in,
-                            $this->actual_time_in,
-                            $minute
-
-                        );
-                    }
-
-                    if($this->actual_time_in->between($this->sched_pm_time_in->addMinute(),$this->sched_time_out)){
-                        $late_minutes++;
-                        // echo $minute->format('Y-m-d H:i').'<br>';
-                    }
-                }
-                    */
-            }
-
-            //set late
-            // if($late_minutes>0){
-                
-            // }
-            $this->log_object->late = $late_minutes;
            
+            // $period = CarbonPeriod::create($this->actual_time_in,'1 Minute',$this->actual_time_out);
+
+            $this->computeLate();
+            $this->computeUnderTime();
+            $this->computeHours();
 
             $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
 
@@ -129,7 +157,7 @@ class Day
 
         }
 
-        // dd($this->log_object);
+       
         // dd(Schema::getColumnListing('edtr_detailed'));
 
     }
@@ -183,6 +211,44 @@ class Day
 }
 
 /*
+
+foreach($period as $minute){
+              /*
+                dd($minute,$this->sched_time_in,$this->sched_am_time_out);
+                if($minute < $this->actual_time_in && ($minute->between($this->sched_time_in,$this->sched_am_time_out))){
+                    $late_minutes++;
+                    dd('imlate');
+                }
+
+                if($minute < $this->actual_time_in && ($minute->between($this->sched_pm_time_in,$this->sched_time_out))){
+                    $late_minutes++;
+                     dd('imlate');
+                }
+
+               
+                if($minute->between($this->sched_time_in,$this->sched_am_time_out) || $minute->between($this->sched_pm_time_in,$this->sched_time_out))
+                {
+                    $mins++;
+                }else{
+                    if($this->actual_time_in->between($this->sched_time_in->addMinute(),$this->sched_am_time_out)){
+                        $late_minutes++;
+                        // echo $minute->format('Y-m-d H:i').'<br>';
+                        dd(
+                            $this->sched_time_in,
+                            $this->actual_time_in,
+                            $minute
+
+                        );
+                    }
+
+                    if($this->actual_time_in->between($this->sched_pm_time_in->addMinute(),$this->sched_time_out)){
+                        $late_minutes++;
+                        // echo $minute->format('Y-m-d H:i').'<br>';
+                    }
+                }
+                   
+            }
+
   // dd($time_in,Carbon::parse($time_in));
             // dd($this->log_object);
             // dd(strtotime('01:00'),Carbon::parse(strtotime('01:00'))->format('Y-m-d H:i'));

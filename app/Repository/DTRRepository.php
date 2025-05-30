@@ -2,11 +2,20 @@
 
 namespace App\Repository;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DTRRepository
 {
     //
+
+    public function sched() {
+        $result = DB::table('work_schedules')
+                ->select(DB::raw("id,CONCAT(time_in,'-',time_out) label"))
+                ->orderBy('time_in','asc');
+
+        return $result->get();
+    }
 
     public function getDTR($payroll_period,$employee)
     {
@@ -59,15 +68,17 @@ class DTRRepository
     * @param date - dtr date
     * @param type - time in | time out | ot in | ot out
     */
-    public function getLog($employee,$date,$type)
+    public function getLog($employee,$row,$type)
     {
-        // dd($employee,$date,$type);
+        // dd($employee,$row->dtr_date,$type);
+        $carbondate = Carbon::createFromFormat('Y-m-d',$row->dtr_date);
         switch($type){
             case 'C/In' : 
                 $used =  DB::table('edtr_detailed')
                     ->select('time_in_id')
                     ->whereNotNull('time_in_id')
                     ->where('emp_id','=',$employee->id);
+
                 break;
             case 'C/Out' : 
                 $used =  DB::table('edtr_detailed')
@@ -82,26 +93,52 @@ class DTRRepository
                     ->where('emp_id','=',$employee->id);
                 break;
             case 'OT/Out' : 
+                // dd($row);
                 $used =  DB::table('edtr_detailed')
                     ->select('ot_out_id')
                     ->whereNotNull('ot_out_id')
                     ->where('emp_id','=',$employee->id);
+
+                $time_in_of_the_day =  DB::table('edtr_raw')
+                    ->where('emp_id','=',$employee->id)
+                    ->where('punch_date','>=',$row->dtr_date)
+                    ->where('cstate','=','C/In')
+                    ->whereNotIn('line_id',$used)
+                    ->orderBy('punch_date','ASC')
+                    ->orderBy('punch_time','ASC')
+                    ->first();
                 break;
+
+               
         };
 
-       
-
         $raw_dtr = DB::table('edtr_raw')
-            ->where('emp_id','=',$employee->id)
-            ->where('punch_date','=',$date)
-            ->where('cstate','=',$type)
-            ->whereNotIn('line_id',$used)
-            ->orderBy('punch_date','ASC')
-            ->orderBy('punch_time','ASC')
-            ->first();
-       
+            ->where('emp_id','=',$employee->id);
+            if($type == 'C/In'){
+                $raw_dtr->where('punch_date','=',$row->dtr_date);
+            }else{
+                $raw_dtr->whereBetween('punch_date',[$carbondate->format('Y-m-d'),$carbondate->addDay()->format('Y-m-d')]);
+            }
+            // ->where('punch_date','>=',$row->dtr_date)
         
-        return $raw_dtr;
+            $raw_dtr->where('cstate','=',$type)
+            ->whereNotIn('line_id',$used);
+
+            // check here if timeout < timein sched
+            // dd();
+            if(isset($time_in_of_the_day) && ($row->sched_time_in > $row->sched_time_out)){
+                // dd($time_in_of_the_day,$row->dtr_date);
+                $raw_dtr->where('punch_time','<',$time_in_of_the_day->punch_time);
+            }
+
+            $raw_dtr->orderBy('punch_date','ASC')
+                ->orderBy('punch_time','ASC');
+            
+            // if($type == 'OT/Out'){
+            //     dd($row, $raw_dtr->toSql(),$raw_dtr->getbindings());
+            // }
+        
+        return $raw_dtr->first();
     }
 
 }
