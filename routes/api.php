@@ -65,6 +65,9 @@ Route::prefix('timekeeping')->group(function(){
 
         Route::get('compute-logs/{period_id}/{emp_id}',[ManageDTRController::class,'computeLogs']);
         Route::post('compute-logs',[ManageDTRController::class,'computeLogs']);
+
+        Route::get('fill-out-logs/{period_id}/{emp_id}',[ManageDTRController::class,'fillOutLogs']);
+        Route::post('fill-out-logs',[ManageDTRController::class,'fillOutLogs']);
     });
 });
 

@@ -396,4 +396,35 @@ class DTRService
 
     }
 
+    public function handeFillOutLogs($emp_id,$period_id)
+    {
+        $employee = $this->emp_repo->getEmployee($emp_id);
+        $period = $this->payperiod_repo->find($period_id);
+
+        $this->dtr_repo->clearMadeLogs($period,$employee);
+
+        $dtr = $this->dtr_repo->getLogsToFillOut($period,$employee);
+
+        // $this->dtr_repo->fillOutLogOut($dtr);
+
+        foreach($dtr as $row)
+        {
+            // dd($log)
+
+            $ids = $this->dtr_repo->makeRawLog($row);
+
+            $row->time_out = $row->sched_time_out;
+            $row->time_out_id = $ids['time_out'];
+
+            $row->ot_in = $row->sched_time_out;
+            $row->ot_in_id = $ids['ot_in'];
+
+            $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
+            DB::table('edtr_detailed')
+                ->where('id', $row->id)
+                ->update($new_arr);
+        }
+    }
+
 }

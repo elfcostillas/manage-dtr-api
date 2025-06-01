@@ -57,7 +57,7 @@ class PayrollPeriodService
                 }
             }
 
-            DB::table('edtr_detailed')->insert($dtr_tmp); //insertOrIgnore 
+            DB::table('edtr_detailed')->insertOrIgnore ($dtr_tmp); //insertOrIgnore 
         }
 
         return $period;

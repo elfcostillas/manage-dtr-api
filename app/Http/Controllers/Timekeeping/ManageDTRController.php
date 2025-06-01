@@ -38,4 +38,10 @@ class ManageDTRController extends Controller
         $result = $this->dtr_service->handleComputeRequest($request->emp_id,$request->period_id);
         return $this->jsonResponse($result,null,'success');
     }
+
+    public function fillOutLogs(Request $request)
+    {
+        $result = $this->dtr_service->handeFillOutLogs($request->emp_id,$request->period_id);
+        return $this->jsonResponse($result,null,'success');
+    }
 }
