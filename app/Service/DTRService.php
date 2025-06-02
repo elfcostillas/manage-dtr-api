@@ -427,4 +427,15 @@ class DTRService
         }
     }
 
+    public function handleUpdateRequest($row)
+    {
+        $new_arr = CustomRequest::filter('edtr_detailed',$row);
+
+        $result = DB::table('edtr_detailed')
+                ->where('id', $row['id'])
+                ->update($new_arr);
+        
+        return $result;
+    }
+
 }

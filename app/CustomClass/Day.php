@@ -23,6 +23,12 @@ class Day
     public $actual_time_in;
     public $actual_time_out;
 
+    public $nightDiffStart;
+    public $nightDiffEnd;
+
+    public $ot_timein;
+    public $ot_timeout;
+
     public $data_arr = [
 
     ];
@@ -124,14 +130,48 @@ class Day
         $this->log_object->ndays =  round($this->log_object->hrs /8,2);
     }
 
+    public function computeNightDiff()
+    {
+        // $range = CarbonPeriod::make();
+
+        $nightDiff = 0;
+        $nightDiffOT = 0;
+
+        $range = CarbonPeriod::create($this->nightDiffStart,'1 Minute',$this->nightDiffEnd);
+       
+        foreach($range as $indexMinunte){
+            //echo $indexMinunte . '-';
+            if($indexMinunte->between($this->actual_time_in,$this->actual_time_out)){
+                $nightDiff++;
+            }
+
+            if($indexMinunte->between($this->ot_timein,$this->ot_timeout)){
+                $nightDiffOT++;
+            }
+            
+        }
+
+        if($nightDiff > 0){
+            $this->log_object->night_diff = round($nightDiff/60,2);
+        }
+
+        if($nightDiffOT > 0){
+            $this->log_object->night_diff_ot = round($nightDiffOT/60,2);
+        }
+
+    }
+
+    public function computeOverTime()
+    {
+        
+    }
+
     public function compute()
     {
        
         $time_in = $this->log_object->time_in;
         $time_out = $this->log_object->time_out;
 
-        
-       
         $mins = 0;
         $hrs = 0;
         $late_minutes = 0;
@@ -146,6 +186,8 @@ class Day
             $this->computeLate();
             $this->computeUnderTime();
             $this->computeHours();
+
+            $this->computeNightDiff();
 
             $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
 
@@ -183,7 +225,31 @@ class Day
         }else{
             $this->sched_time_out = $this->convertToTime($this->convertToDate($this->log_object->dtr_date)->addDay()->format('Y-m-d'),$this->log_object->sched_time_out);
         }
-    
+
+        //make night diff time
+        $this->nightDiffStart =  $this->convertToTime($this->log_object->dtr_date,'22:00');
+        $this->nightDiffEnd =  $this->convertToTime($this->convertToDate($this->log_object->dtr_date)->addDay()->format('Y-m-d'),'06:00');
+
+        if($this->log_object->ot_in != null && $this->log_object->ot_out != null){
+            // dd($this->log_object->ot_in); check if overtime timein < timein ? same day : next day
+
+            if(Carbon::parse($this->log_object->time_in) < Carbon::parse($this->log_object->ot_in)){
+                $this->ot_timein = $this->convertToTime($this->log_object->dtr_date,$this->log_object->ot_in);
+            } else {
+                $this->ot_timein = $this->convertToTime($this->convertToDate($this->log_object->dtr_date)->addDay()->format('Y-m-d'),$this->log_object->ot_in);
+            }
+
+            if(Carbon::parse($this->log_object->time_in) < Carbon::parse($this->log_object->ot_out)){
+                $this->ot_timeout = $this->convertToTime($this->log_object->dtr_date,$this->log_object->ot_out);
+            } else {
+                $this->ot_timeout = $this->convertToTime($this->convertToDate($this->log_object->dtr_date)->addDay()->format('Y-m-d'),$this->log_object->ot_out);
+            }
+
+           
+            
+        }
+        
+        //ot_timeout
 
         // dd( $this->sched_time_in,$this->sched_am_time_out, $this->sched_pm_time_in,$this->sched_time_out);
 
