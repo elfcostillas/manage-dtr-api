@@ -152,10 +152,12 @@ class Day
         }
 
         if($nightDiff > 0){
+            $nightDiff =  $nightDiff - ($nightDiff % 30);
             $this->log_object->night_diff = round($nightDiff/60,2);
         }
 
         if($nightDiffOT > 0){
+            $nightDiffOT =  $nightDiffOT - ($nightDiffOT % 30);
             $this->log_object->night_diff_ot = round($nightDiffOT/60,2);
         }
 
@@ -163,7 +165,19 @@ class Day
 
     public function computeOverTime()
     {
-        
+        $overtime = 0;
+
+        if(!is_null($this->ot_timein) && !is_null($this->ot_timeout)){
+
+            $range = CarbonPeriod::create($this->ot_timein,'1 Minute',$this->ot_timeout);
+            foreach($range as $indexMinunte){
+                $overtime++;
+            }
+
+            $overtime = $overtime - ($overtime % 30);
+        }
+      
+        $this->log_object->over_time = round($overtime/60,2);
     }
 
     public function compute()
@@ -188,6 +202,7 @@ class Day
             $this->computeHours();
 
             $this->computeNightDiff();
+            $this->computeOverTime();
 
             $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
 
