@@ -11,9 +11,16 @@ use Illuminate\Http\Request;
 class UserRightsController extends Controller
 {
     //
-    public function __construct(EmployeeRepository $emp_repo,UserRepository $repo,UserService $service)
+    public function __construct(private EmployeeRepository $emp_repo,private UserRepository $repo,private UserService $service)
     {
         
+    }
+
+    public function list(Request $request)
+    {
+        $result = $this->repo->getUsers();
+
+        return $this->jsonResponse($result,null,'success');
     }
 
     

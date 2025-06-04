@@ -6,6 +6,7 @@ use App\Http\Controllers\Timekeeping\FTPApprovalController;
 use App\Http\Controllers\Timekeeping\FTPController;
 use App\Http\Controllers\Timekeeping\ManageDTRController;
 use App\Http\Controllers\Timekeeping\PayrollPeriodController;
+use App\Http\Controllers\User\UserRightsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,12 @@ Route::prefix('master-data')->group(function(){
         
     });
     
+});
+
+Route::prefix('user-settings')->group(function(){ 
+    Route::prefix('user-rights')->group(function(){ 
+        Route::get('user-list',[UserRightsController::class,'list']);
+    });
 });
 
 Route::prefix('timekeeping')->group(function(){ 
