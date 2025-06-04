@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MasterData\EmployeeController;
+use App\Http\Controllers\Navigator\UserModuleController;
 use App\Http\Controllers\Timekeeping\FTPApprovalController;
 use App\Http\Controllers\Timekeeping\FTPController;
 use App\Http\Controllers\Timekeeping\ManageDTRController;
@@ -22,6 +23,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::middleware('auth:sanctum')->get('/navigator/user-modules', UserModuleController::class);
+
 
 
 Route::prefix('master-data')->group(function(){ 
