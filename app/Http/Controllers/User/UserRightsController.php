@@ -23,5 +23,23 @@ class UserRightsController extends Controller
         return $this->jsonResponse($result,null,'success');
     }
 
+    public function  modules_list(Request $request)
+    {
+        $result = $this->repo->getModules();
+        return $this->jsonResponse($result,null,'success');
+    }
+
+    public function saveRights(Request $request)
+    {
+        $data = array(
+            'user' => $request->user,
+            'rights' => $request->rights
+        );
+
+        $result = $this->service->handeRightsSave($data);
+
+
+        return response()->json($result);
+    }
     
 }

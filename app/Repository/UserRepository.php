@@ -17,4 +17,22 @@ class UserRepository
         return $result;
 
     }
+
+    public function getModules()
+    {
+        // select * from menu_subs;
+        $result = DB::table('menu_subs')->get();
+
+        foreach($result as $row)
+        {
+            $main = DB::table('menu_mains')
+                ->where('id','=',$row->main_id)
+                ->select('id','label')
+                ->first();
+
+            $row->main = $main;
+        }
+
+        return $result;
+    }
 }

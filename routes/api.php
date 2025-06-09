@@ -40,10 +40,12 @@ Route::prefix('master-data')->group(function(){
     
 });
 
-Route::prefix('user-settings')->group(function(){ 
-    Route::prefix('user-rights')->group(function(){ 
-        Route::get('user-list',[UserRightsController::class,'list']);
-    });
+    Route::prefix('user-settings')->group(function(){ 
+        Route::prefix('user-rights')->group(function(){ 
+            Route::get('user-list',[UserRightsController::class,'list']);
+            Route::get('user-modules',[UserRightsController::class,'modules_list']);
+            Route::post('save-rights',[UserRightsController::class,'saveRights']);
+        });
 });
 
 Route::prefix('timekeeping')->group(function(){ 
