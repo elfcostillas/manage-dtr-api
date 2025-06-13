@@ -33,4 +33,13 @@ class UserModulesRepository
         return $mains;
     }
 
+    public function getUserRights($user)
+    {
+        $result = DB::table('menu_users')
+            ->where('user_id','=',$user['id'])
+            ->get();
+
+        return $result;
+    }
+
 }
