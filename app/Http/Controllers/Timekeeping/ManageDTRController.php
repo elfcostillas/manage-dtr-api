@@ -30,7 +30,8 @@ class ManageDTRController extends Controller
     {
         // dd($request->emp_id,$request->period_id);
         $result = $this->dtr_service->handleDrawRequest($request->emp_id,$request->period_id);
-        return $this->jsonResponse($result,null,'success');
+        return response()->json($result);
+        // return $this->jsonResponse($result,null,'success');
     }
 
     public function computeLogs(Request $request)

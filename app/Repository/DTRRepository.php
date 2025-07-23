@@ -99,7 +99,7 @@ class DTRRepository
                     ->whereNotNull('ot_out_id')
                     ->where('emp_id','=',$employee->id);
 
-                $time_in_of_the_day =  DB::table('edtr_raw')
+                $time_in_of_the_day =  DB::table('edtr_raw_vw')
                     ->where('emp_id','=',$employee->id)
                     ->where('punch_date','>=',$row->dtr_date)
                     ->where('cstate','=','C/In')
@@ -112,7 +112,7 @@ class DTRRepository
                
         };
 
-        $raw_dtr = DB::table('edtr_raw')
+        $raw_dtr = DB::table('edtr_raw_vw')
             ->where('emp_id','=',$employee->id);
             if($type == 'C/In'){
                 $raw_dtr->where('punch_date','=',$row->dtr_date);
@@ -124,21 +124,24 @@ class DTRRepository
             $raw_dtr->where('cstate','=',$type)
             ->whereNotIn('line_id',$used);
 
-            // check here if timeout < timein sched
-            // dd();
+           
             if(isset($time_in_of_the_day) && ($row->sched_time_in > $row->sched_time_out)){
                 // dd($time_in_of_the_day,$row->dtr_date);
                 $raw_dtr->where('punch_time','<',$time_in_of_the_day->punch_time);
+            }else{
+                var_dump('im here');
             }
 
             $raw_dtr->orderBy('punch_date','ASC')
                 ->orderBy('punch_time','ASC');
             
-            // if($type == 'OT/Out'){
+            // if($type == 'C/Out'){
             //     dd($row, $raw_dtr->toSql(),$raw_dtr->getbindings());
+                
             // }
         
         return $raw_dtr->first();
+        
     }
 
     public function getLogsToFillOut($payroll_period,$employee)

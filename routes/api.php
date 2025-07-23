@@ -6,6 +6,7 @@ use App\Http\Controllers\Timekeeping\FTPApprovalController;
 use App\Http\Controllers\Timekeeping\FTPController;
 use App\Http\Controllers\Timekeeping\ManageDTRController;
 use App\Http\Controllers\Timekeeping\PayrollPeriodController;
+use App\Http\Controllers\Timekeeping\RawLogsController;
 use App\Http\Controllers\User\UserRightsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -84,5 +85,9 @@ Route::prefix('timekeeping')->group(function(){
       
         Route::post('update-logs',[ManageDTRController::class,'updateLog']);
     });
-});
 
+    Route::prefix('logs')->group(function(){
+        Route::get('data/{period_id}/{emp_id}',[RawLogsController::class,'data']);
+        Route::post('update-log',[RawLogsController::class,'updateLog']);
+    });
+});

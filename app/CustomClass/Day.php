@@ -69,6 +69,8 @@ class Day
             $late_pm = 0;
             $late_minutes = 0;
 
+            //shortEnglishDayOfWeek
+
             if($this->actual_time_in > $this->sched_time_in && ($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')))
             {
                 $late_am = $this->actual_time_in->diff($this->sched_time_in);
@@ -90,6 +92,7 @@ class Day
         $ut_am = 0;
         $ut_pm = 0;
         $ut_mins = 0;
+        $final_ut_mins = 0;
         
         if($this->actual_time_out < $this->sched_am_time_out){
             $ut_am = $this->sched_am_time_out->diff($this->actual_time_out);
@@ -102,7 +105,13 @@ class Day
             $ut_mins += ($ut_pm->i + ($ut_pm->h * 60));
         }
 
-        $this->log_object->under_time = $ut_mins;
+        if($ut_mins){
+            $multiplier = ceil($ut_mins/30);
+            $final_ut_mins = $multiplier * 30;
+        }
+
+
+        $this->log_object->under_time = $final_ut_mins;
     }
 
     public function computeHours()
@@ -126,8 +135,60 @@ class Day
             $pm_hrs = 4;
         }
 
-        $this->log_object->hrs = $am_hrs + $pm_hrs;
-        $this->log_object->ndays =  round($this->log_object->hrs /8,2);
+        $hrs = $am_hrs + $pm_hrs;
+
+        // if($hrs != 8 && (get_class($this) == 'App\CustomClass\RegularDay')){
+        if(get_class($this) == 'App\CustomClass\RegularDay'){
+            
+            switch($this->indexDay()->shortEnglishDayOfWeek)
+            {
+                case 'Mon' :
+                case 'Tue' :
+                case 'Wed' :
+                case 'Thu' :
+                case 'Fri' :
+                    
+
+                    break;
+                case 'Sat' :
+                    break;
+            }
+
+            $leaves = $this->getFiledLeaves();
+
+            $hrs += $leaves;
+            // $date = Carbon::createFromFormat('Y-m-d',)
+            //  dd($this->log_object)
+
+            if($hrs < 8)
+            {
+                $this->log_object->awol = 8 - $hrs;
+            } 
+
+        }
+
+       
+
+       
+
+        $this->log_object->hrs = $hrs;
+        $this->log_object->ndays =  round($this->log_object->hrs/8,2);
+    }
+
+    public function getFiledLeaves() : Float
+    {
+        $leave = DB::table('filed_leaves_vw')
+            ->select(DB::raw("ifnull(SUM(with_pay + without_pay),0) as hrs"))
+            ->where('biometric_id','=',$this->log_object->biometric_id)
+            ->where('leave_date','=',$this->log_object->dtr_date)
+            ->first();
+
+        
+            return round($leave->hrs/8,2);
+        
+        // SELECT SUM(with_pay + without_pay) FROM filed_leaves_vw WHERE biometric_id = AND leave_date = 
+
+        // dd($this->log_object->biometric_id,$this->log_object->dtr_date);
     }
 
     public function computeNightDiff()

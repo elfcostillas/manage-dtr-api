@@ -65,19 +65,23 @@ class FTPService
     public function handleApproveRequest($requestData,$user)
     {
         $employee = $this->emp_repo->getEmployee($requestData['emp_id']);
-        
-        $result = FTP::where('id','=',$requestData['id'])
-            ->where('isChecked','=','N')
-            ->update([
-                'isChecked' => 'Y',
-                'checked_by' => $user->id,
-                'checked_on' => now(),
-            ]);
-
+            
         $ftp_id = $requestData['id'];
 
-        $result = $this->makeRawLogs($ftp_id,$employee);
-        
+        $hasError = $result = $this->makeRawLogs($ftp_id,$employee);
+
+        $result = false;
+
+        if(!$hasError){
+            $result = FTP::where('id','=',$requestData['id'])
+                ->where('isChecked','=','N')
+                ->update([
+                    'isChecked' => 'Y',
+                    'checked_by' => $user->id,
+                    'checked_on' => now(),
+                ]);
+        }
+    
         return $result;
         
     }
@@ -85,6 +89,10 @@ class FTPService
     public function makeRawLogs($ftp_id,$employee)
     {
         $ftp = $this->ftp_repo->getFTP($ftp_id);
+
+        $flag1 = $flag2 = $flag3 = $fla4 = null;
+
+        $error = false;
         
         if(!is_null($ftp->time_in)){ 
             $time_in_array = [
@@ -98,7 +106,7 @@ class FTPService
                 'new_cstate' => null,
             ];
 
-            DB::table('edtr_raw')->insert($time_in_array);
+            $flag1 = DB::table('edtr_raw')->insert($time_in_array);
     
         };
 
@@ -113,7 +121,8 @@ class FTPService
                 'emp_id' => $employee->id,
                 'new_cstate' => null,
             ];
-            DB::table('edtr_raw')->insert($time_out_array);
+
+            $flag2 =  DB::table('edtr_raw')->insert($time_out_array);
         };
 
         if(!is_null($ftp->ot_in)){ 
@@ -127,7 +136,8 @@ class FTPService
                 'emp_id' => $employee->id,
                 'new_cstate' => null,
             ];
-            DB::table('edtr_raw')->insert($time_in_ot_array);
+
+            $flag3 = DB::table('edtr_raw')->insert($time_in_ot_array);
         };
 
         if(!is_null($ftp->ot_out)){ 
@@ -141,10 +151,11 @@ class FTPService
                 'emp_id' => $employee->id,
                 'new_cstate' => null,
             ];
-            DB::table('time_out_ot_array')->insert($time_in_ot_array);
+
+            $flag4 = DB::table('edtr_raw')->insert($time_in_ot_array);
         };
 
-    
+        return ($flag1 && $flag2 && $flag3 && $flag4);
     }
 
     /*

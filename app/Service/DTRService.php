@@ -66,99 +66,48 @@ class DTRService
         
     }
 
+    public function handleGetRawLogs($period_id,$emp_id)
+    {
+        $data = [];
+
+        $employee = DB::table('employees')
+            ->where('id','=',$emp_id)
+            ->first();
+
+        if($employee){
+            if($employee->emp_level < 6){
+                $period = DB::table('payroll_period')
+                    ->where('id','=',$period_id)
+                    ->first();
+            }else{
+                $period = DB::table('payroll_period_weekly')
+                    ->where('id','=',$period_id)
+                    ->first();
+            }
+
+            if($period){
+               $data['raw_logs'] = $this->raw_logs($employee,$period);
+            }
+            return $data;
+        }
+    }
+
     public function handleDrawRequest($emp_id,$period_id)
     {   
         $employee = $this->emp_repo->getEmployee($emp_id);
         $period = $this->payperiod_repo->find($period_id);
+        
+        /* prepare DTR by setting biometric_id */
+        $this->prepareDtrRaw($emp_id);
 
         $dtr = $this->dtr_repo->getDTR($period,$employee);
 
         $this->clearDailyLogsToProcess($dtr);
+       
 
         foreach($dtr as $row){
-            // time in
-            $time_in = $this->dtr_repo->getLog($employee,$row,'C/In');
-            if(isset($time_in)){
-                $row->time_in_id = $time_in->line_id;
-                $row->time_in = $time_in->punch_time;
-                
-                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
-
-                DB::table('edtr_detailed')
-                    ->where('id', $row->id)
-                    ->update($new_arr);
-            }
             
-            //time out
-            if(isset($time_in))
-            $time_out = $this->dtr_repo->getLog($employee,$row,'C/Out');
-
-            if(isset($time_out)){
-                $row->time_out_id = $time_out->line_id;
-                $row->time_out = $time_out->punch_time;
-
-                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
-
-                DB::table('edtr_detailed')
-                    ->where('id', $row->id)
-                    ->update($new_arr);
-            }
-            
-            //ot in 
-            if(isset($time_in))
-            $ot_in = $this->dtr_repo->getLog($employee,$row,'OT/In');
-
-            if(isset($ot_in)){
-                $row->ot_in_id = $ot_in->line_id;
-                $row->ot_in = $ot_in->punch_time;
-
-                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
-
-                DB::table('edtr_detailed')
-                    ->where('id', $row->id)
-                    ->update($new_arr);
-            }
-
-            //ot out
-            if(isset($time_in))
-            $ot_out = $this->dtr_repo->getLog($employee,$row,'OT/Out');
-
-            if(isset($ot_out)){
-                $row->ot_out_id = $ot_out->line_id;
-                $row->ot_out = $ot_out->punch_time;
-
-                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
-
-                DB::table('edtr_detailed')
-                    ->where('id', $row->id)
-                    ->update($new_arr);
-            }
-
-            // if(isset($time_in)){
-            //     $row->time_in_id = $time_in->line_id;
-            //     $row->time_in = $time_in->punch_time;
-            // }
-
-            // if(isset($ot_in)){
-            //     $row->ot_in_id = $ot_in->line_id;
-            //     $row->ot_in = $ot_in->punch_time;
-            // }
-
-           
-
-        
-
-            // unset($row->hol_code);
-            // unset($row->sched_time_in);
-            // unset($row->sched_time_out);
-            // unset($row->sched_out_am);
-            // unset($row->sched_in_pm);
-
-            // DB::table('edtr_detailed')
-            //     ->where('id', $row->id)
-            //     ->update((array) $row);
-
-           
+            dd($row);
 
             unset($time_in);
             unset($time_out);
@@ -201,6 +150,17 @@ class DTRService
         }
     }
 
+    public function prepareDtrRaw($emp_id)
+    {
+        $employee = DB::table('employees')->where('id',$emp_id)->first();
+
+        if($employee){
+            DB::table('edtr_raw')->where('biometric_id','=',$employee->biometric_id)
+                ->update(['emp_id' => $employee->id]);
+        }    
+     
+    }
+
     public function raw_logs($employee,$period)
     {
         // dd($period);
@@ -211,8 +171,10 @@ class DTRService
 
         $result = DB::table('edtr_raw') //edtr_detailed
             ->where('biometric_id','=',$employee->biometric_id)
-            ->select('line_id','punch_date','punch_time','cstate','src','src_id','emp_id','biometric_id')
+            ->select('line_id','punch_date','punch_time','cstate','src','src_id','emp_id','biometric_id','new_cstate')
             ->whereBetween('punch_date',[$date_from->format('Y-m-d'),$date_to->format('Y-m-d')]);
+
+            // dd($result->toSql(),$result->getBindings());
 
         return $result->orderBy('punch_date','ASC')->orderBy('punch_time','ASC')->get();
     }
@@ -433,6 +395,17 @@ class DTRService
 
         $result = DB::table('edtr_detailed')
                 ->where('id', $row['id'])
+                ->update($new_arr);
+        
+        return $result;
+    }
+
+    public function handleUpdatelogRequest($row)
+    {
+        $new_arr = CustomRequest::filter('edtr_raw',$row);
+
+        $result = DB::table('edtr_raw')
+                ->where('line_id', $row['line_id'])
                 ->update($new_arr);
         
         return $result;

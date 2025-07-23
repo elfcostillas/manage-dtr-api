@@ -2,7 +2,7 @@
 
 namespace App\CustomClass;
 
-class SpecialHoliday
+class SpecialHoliday extends Day
 {
     //
   
@@ -10,4 +10,6 @@ class SpecialHoliday
     {
         dd('regular holiday');
     }
+
+   
 }
