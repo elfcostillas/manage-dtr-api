@@ -2,7 +2,77 @@
 
 namespace App\CustomClass\Logs;
 
-class ClockIn
+use App\CustomClass\Logs\Log;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
+class ClockIn extends Log
 {
     //
+    public $log; 
+    public $data; 
+
+    // public function __construct($data)
+    // {   
+        
+    //     parent::__construct();
+    // }
+
+    public function buildSelf() : void {
+
+       
+        $self = DB::table('edtr_raw_vw')
+            ->where('punch_date',$this->data->dtr_date)
+            ->where('biometric_id',$this->data->biometric_id)
+            ->first();
+        
+        $this->log = $self;
+
+        // dd($this->data->dtr_date,$this->data->biometric_id);
+
+    }
+
+    public function showData()
+    {
+        // dd($this->log,$this->data);
+    }
+
+    public function getLog()
+    {
+        return $this->log;
+    }
+
+    public function getNextLogin()
+    {
+        
+        $date = Carbon::createFromFormat('Y-m-d',$this->data->dtr_date);
+        $nextDay = $date->addDay()->format('Y-m-d');
+
+        $log = DB::table('edtr_raw_vw')
+            ->where('punch_date',$nextDay)
+            ->where('biometric_id',$this->data->biometric_id)
+            ->where('cstate','=','C/In')
+            ->first();
+
+        return $log;
+
+    }
+
+    public function getNextDaySchedule()
+    {
+        $date = Carbon::createFromFormat('Y-m-d',$this->data->dtr_date);
+        $nextDay = $date->addDay()->format('Y-m-d');
+
+        $nextSched = DB::table('edtr_detailed')
+            ->leftJoin('work_schedules','edtr_detailed.schedule_id','=','work_schedules.id')
+            ->select(DB::raw("timestamp(`edtr_detailed`.`dtr_date`,`work_schedules`.`time_in`) AS `t_stamp`"))
+            ->where('dtr_date','=',$nextDay)
+            ->where('biometric_id',$this->data->biometric_id);
+
+        // dd($nextSched->toSql(),$nextSched->getBindings());
+        
+        return $nextSched->first();
+    }
+
+
 }

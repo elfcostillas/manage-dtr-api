@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\CustomClass\CustomRequest;
 use App\CustomClass\LegalHoliday;
+use App\CustomClass\Logs\ClockIn;
 use App\CustomClass\RegularDay;
 use App\CustomClass\SpecialHoliday;
 use App\Repository\DTRRepository;
@@ -107,7 +108,29 @@ class DTRService
 
         foreach($dtr as $row){
             
-            dd($row);
+            $clock_in_obj = new ClockIn($row);
+
+            $time_in = $clock_in_obj->getLog();
+
+            if(!is_null($time_in)){
+                $row->time_in_id = $time_in->line_id;
+                $row->time_in = $time_in->punch_time;
+            }
+
+            $nextLogin = $clock_in_obj->getNextLogin();
+            $nextDayLogin = $clock_in_obj->getNextDaySchedule()->t_stamp;
+            
+            // if(is_null($nextLogin)){
+                
+            // }else{
+
+            // }
+
+            // dd($nextLogin, $nextDayLogin );
+
+          
+            
+            // dd($row);
 
             unset($time_in);
             unset($time_out);
