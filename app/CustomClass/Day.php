@@ -166,10 +166,7 @@ class Day
             } 
 
         }
-
-       
-
-       
+        
 
         $this->log_object->hrs = $hrs;
         $this->log_object->ndays =  round($this->log_object->hrs/8,2);
@@ -250,8 +247,16 @@ class Day
         $mins = 0;
         $hrs = 0;
         $late_minutes = 0;
+        $ndays = 0;
+        $awol = 0;
 
-        if(!is_null($time_in) && !is_null($time_out)){
+
+        $this->log_object->hrs = 0;
+        $this->log_object->ndays = 0;
+        $this->log_object->awol = 0;
+        $this->log_object->late_minutes = 0;
+
+        if(!is_null($time_in)  && !is_null($time_out)){
             $this->makeSchedule(); // make schedule; set date to next day
             // dd($this->convertToTime($this->log_object->dtr_date,$this->log_object->time_in)->format('Y-m-d H:i'));
             $this->makeworkedTime();
@@ -265,17 +270,54 @@ class Day
             $this->computeNightDiff();
             $this->computeOverTime();
 
-            $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
-
-            DB::table('edtr_detailed')
-                ->where('id', $this->log_object->id)
-                ->update($new_arr);
+          
 
         }else{
 
+            /* for ni clock-in / clock-out */
+
+            $date = Carbon::createFromFormat('Y-m-d',$this->log_object->dtr_date);
+
+            switch($date->shortDayName)
+            {
+                case 'Mon' :
+                case 'Tue' :
+                case 'Wed' :
+                case 'Thu' :
+                case 'Fri' :
+                    $leaves = $this->getFiledLeaves();
+                        $this->log_object->awol = 8 - $leaves;
+                    break;
+
+                case 'Sat' :
+                    // dd($this->log_object );
+                    $leaves = $this->getFiledLeaves();
+                    if(!is_null($this->log_object->schedule_id) && $this->log_object->schedule_id != 0 ){
+                        $this->log_object->awol = 8 - $leaves;
+                    } else {
+                        $this->log_object->awol = 0;
+                    }
+
+                    break;
+
+
+                case 'Sun' :
+
+                    break;
+                
+            }
+            
+
+            // $this->log_object->awol = 8 - $leaves;
+            
         }
 
-       
+        $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
+
+        DB::table('edtr_detailed')
+            ->where('id', $this->log_object->id)
+            ->update($new_arr);
+
         // dd(Schema::getColumnListing('edtr_detailed'));
 
     }

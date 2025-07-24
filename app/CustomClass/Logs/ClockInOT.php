@@ -6,14 +6,16 @@ use App\CustomClass\Logs\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class ClockOut extends Log
+class ClockInOT extends Log
 {
+    //
     public $log; 
     public $row;
 
     public $login;
     public $time_in;
     public $nextSchedLogin;
+
 
     public function __construct($row,$time_in,$login,$nextSchedLogin)
     {
@@ -29,44 +31,27 @@ class ClockOut extends Log
     
     public function buildSelf() : void {
 
-        // $start = $this->row->dtr_date
-        //var_dump($this->row->dtr_date,$this->row->sched_time_in);
     
-
         $time = (is_null($this->row->sched_time_in) || $this->row->sched_time_in=='') ? '00:00' : $this->row->sched_time_in;
         
         $sched_in = Carbon::createFromFormat('Y-m-d H:i', $this->row->dtr_date .' '. $time)->format('Y-m-d H:i:s.u');
 
         $start = $this->time_in->t_stamp ?? $sched_in;
-
+        
         if(is_null($this->nextSchedLogin))
         {
             $this->nextSchedLogin =  Carbon::createFromFormat('Y-m-d H:i', $this->row->dtr_date .' '.'12:00')->addDay();
         }
 
-        // dd($start,$this->time_in->t_stamp,$sched_in);
-        // dd($start->format('Y-m-d H:i:s.u'));
-
-        // dd($this->row->dtr_date,$this->row->sched_time_in);
-
-        // dd($this->nextSchedLogin);
-
-        // if($this->row->dtr_date == '2025-06-21'){
-        //     dd($this->nextSchedLogin); // if null make default range
-        // }
-
-       
         $self = DB::table('edtr_raw_vw')
             // ->where('punch_date',$this->data->dtr_date)
             ->select('line_id','punch_date','punch_time','biometric_id','cstate','src','src_id','emp_id','new_cstate','t_stamp')
             ->where('biometric_id',$this->row->biometric_id)
             ->whereBetween('t_stamp',[$start,$this->nextSchedLogin])
-            ->where('cstate','=','C/Out')
+            ->where('cstate','=','OT/In')
             ->first();
         
         $this->log = $self;
-
-        // dd($this->data->dtr_date,$this->data->biometric_id);
 
     }
 
@@ -74,4 +59,10 @@ class ClockOut extends Log
     {
         return $this->log;
     }
+    
 }
+
+/*
+OT/In
+OT/Out
+*/

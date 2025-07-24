@@ -5,6 +5,9 @@ namespace App\Service;
 use App\CustomClass\CustomRequest;
 use App\CustomClass\LegalHoliday;
 use App\CustomClass\Logs\ClockIn;
+use App\CustomClass\Logs\ClockInOT;
+use App\CustomClass\Logs\ClockOut;
+use App\CustomClass\Logs\ClockOutOT;
 use App\CustomClass\RegularDay;
 use App\CustomClass\SpecialHoliday;
 use App\Repository\DTRRepository;
@@ -15,6 +18,8 @@ use PhpParser\Node\Expr\FuncCall;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 
+use function Psy\debug;
+
 class DTRService
 {
     //
@@ -22,6 +27,8 @@ class DTRService
     {
         
     }
+
+    public $employee;
     
     //private $day_types = ['regular','restday','special_hol','legal_hol','dbl_special','dbl_legal'];
     private $day_types = ['regular','special_hol','legal_hol','dbl_special','dbl_legal'];
@@ -95,42 +102,79 @@ class DTRService
 
     public function handleDrawRequest($emp_id,$period_id)
     {   
+
+        
+        DB::enableQueryLog();
+
         $employee = $this->emp_repo->getEmployee($emp_id);
+        
+        if(!is_null($employee)){
+            $this->employee = $employee;
+        }
+
         $period = $this->payperiod_repo->find($period_id);
         
         /* prepare DTR by setting biometric_id */
+        // echo now().'clear raw logs  <br>';
         $this->prepareDtrRaw($emp_id);
-
+        // echo now().'get dtr  <br>';
         $dtr = $this->dtr_repo->getDTR($period,$employee);
-
+        // echo now().'clear dtr  <br>';
         $this->clearDailyLogsToProcess($dtr);
        
 
         foreach($dtr as $row){
             
+          
             $clock_in_obj = new ClockIn($row);
 
             $time_in = $clock_in_obj->getLog();
 
             if(!is_null($time_in)){
+
                 $row->time_in_id = $time_in->line_id;
                 $row->time_in = $time_in->punch_time;
             }
-
+           
             $nextLogin = $clock_in_obj->getNextLogin();
-            $nextDayLogin = $clock_in_obj->getNextDaySchedule()->t_stamp;
+            $nextDaySched = $clock_in_obj->getNextDaySchedule()->t_stamp;
             
-            // if(is_null($nextLogin)){
-                
-            // }else{
+            $clock_out_obj = new ClockOut($row,$time_in,$nextLogin,$nextDaySched);
 
+            $time_out = $clock_out_obj->getLog();
+
+            // if($row->dtr_date == '2025-06-21'){
+            //     dd($time_out);
             // }
 
-            // dd($nextLogin, $nextDayLogin );
+            if(!is_null($time_out)){
+                $row->time_out_id = $time_out->line_id;
+                $row->time_out = $time_out->punch_time;
+            }
 
-          
+            // dd($row,$time_in,$nextLogin,$nextDaySched);
+            $clockin_ot_obj = new ClockInOT($row,$time_in,$nextLogin,$nextDaySched);
+            $clockin_ot = $clockin_ot_obj->getLog();
             
-            // dd($row);
+            if(!is_null($clockin_ot)){
+                $row->ot_in_id = $clockin_ot->line_id;
+                $row->ot_in = $clockin_ot->punch_time;
+            }
+
+            $clockout_ot_obj = new ClockOutOT($row,$time_in,$nextLogin,$nextDaySched);
+            $clockout_ot = $clockout_ot_obj->getLog();
+            
+            if(!is_null($clockout_ot)){
+                $row->ot_out_id = $clockout_ot->line_id;
+                $row->ot_out = $clockout_ot->punch_time;
+            }
+
+
+            $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
+            DB::table('edtr_detailed')
+                ->where('id', $row->id)
+                ->update($new_arr);
 
             unset($time_in);
             unset($time_out);
@@ -138,7 +182,14 @@ class DTRService
             unset($ot_out);
 
         }
-        
+
+        $query = DB::getQueryLog();
+
+  
+
+        dd($query);
+
+
         return $dtr;
         
     }
@@ -159,6 +210,13 @@ class DTRService
             $row->ot_out_id = null;
             $row->ot_out = null;
 
+            $row->ndays = 0;
+            $row->hrs = 0;
+            $row->awol = 0;
+            $row->ut = 0;
+            $row->late = 0;
+            $row->late_eq = 0;
+
             // unset($row->hol_code);
             // unset($row->sched_time_in);
             // unset($row->sched_time_out);
@@ -175,8 +233,12 @@ class DTRService
 
     public function prepareDtrRaw($emp_id)
     {
-        $employee = DB::table('employees')->where('id',$emp_id)->first();
-
+        if(!is_null($this->employee)){
+            $employee = $this->employee;
+        }else{
+            $employee = DB::table('employees')->where('id',$emp_id)->first();
+        }
+       
         if($employee){
             DB::table('edtr_raw')->where('biometric_id','=',$employee->biometric_id)
                 ->update(['emp_id' => $employee->id]);

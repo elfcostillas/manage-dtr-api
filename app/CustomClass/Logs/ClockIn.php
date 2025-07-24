@@ -19,11 +19,12 @@ class ClockIn extends Log
     // }
 
     public function buildSelf() : void {
-
        
         $self = DB::table('edtr_raw_vw')
+            ->select('line_id','punch_date','punch_time','biometric_id','cstate','src','src_id','emp_id','new_cstate','t_stamp')
             ->where('punch_date',$this->data->dtr_date)
             ->where('biometric_id',$this->data->biometric_id)
+            ->where('cstate','=','C/In')
             ->first();
         
         $this->log = $self;
@@ -49,6 +50,7 @@ class ClockIn extends Log
         $nextDay = $date->addDay()->format('Y-m-d');
 
         $log = DB::table('edtr_raw_vw')
+        ->select('line_id','punch_date','punch_time','biometric_id','cstate','src','src_id','emp_id','new_cstate','t_stamp')
             ->where('punch_date',$nextDay)
             ->where('biometric_id',$this->data->biometric_id)
             ->where('cstate','=','C/In')
