@@ -47,7 +47,11 @@ class ClockInOT extends Log
             // ->where('punch_date',$this->data->dtr_date)
             ->select('line_id','punch_date','punch_time','biometric_id','cstate','src','src_id','emp_id','new_cstate','t_stamp')
             ->where('biometric_id',$this->row->biometric_id)
-            ->whereBetween('t_stamp',[$start,$this->nextSchedLogin])
+            // ->whereBetween('t_stamp',[$start,$this->nextSchedLogin])
+            ->where(function($query) use ($start){
+                $query->where('t_stamp','>=',$start);
+                $query->where('t_stamp','<=',$this->nextSchedLogin);
+            })
             ->where('cstate','=','OT/In')
             ->first();
         

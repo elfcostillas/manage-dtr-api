@@ -16,9 +16,10 @@ class PayrollPeriodService
     {
         
     }
-    public function handleRequest($period)
+    public function handleRequest($period_id)
     {
-        $period = $this->payperiod_repo->find($period);
+       
+        $period = $this->payperiod_repo->find($period_id);
         
         $dtr_tmp = [];
 
@@ -30,6 +31,7 @@ class PayrollPeriodService
             $dates = CarbonPeriod::create($date_from,'1 Day',$date_to);
             
             foreach($employees as $employee){
+              
                 foreach($dates as $date){
 
                     // dd($date->shortEnglishDayOfWeek);
@@ -53,11 +55,17 @@ class PayrollPeriodService
                         'dtr_date' => $date->format('Y-m-d'),
                         'schedule_id' => $sched
                     ];
-                    array_push($dtr_tmp,$dtr_array);
+                    // array_push($dtr_tmp,$dtr_array);
+
+                    DB::table('edtr_detailed')
+                    ->updateOrInsert(
+                        ['biometric_id' =>$employee->biometric_id , 'emp_id' => $employee->id, 'dtr_date' => $date->format('Y-m-d') ],
+                        [ 'schedule_id' => $sched ]
+                    );
                 }
             }
 
-            DB::table('edtr_detailed')->insertOrIgnore($dtr_tmp); //insertOrIgnore 
+            // DB::table('edtr_detailed')->insertOrIgnore($dtr_tmp); //insertOrIgnore 
         }
 
         return $period;

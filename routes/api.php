@@ -54,6 +54,7 @@ Route::prefix('timekeeping')->group(function(){
         Route::get('list',[PayrollPeriodController::class,'list']);
         Route::get('index',[PayrollPeriodController::class,'index']);
         Route::post('prepare',[PayrollPeriodController::class,'prepare']);
+        Route::get('prepare/{period_id}',[PayrollPeriodController::class,'prepare']);
     });
 
     Route::prefix('ftp')->group(function(){ 

@@ -65,26 +65,32 @@ class Day
 
     public function computeLate()
     {
-            $late_am = 0;
-            $late_pm = 0;
-            $late_minutes = 0;
+        $late_am = 0;
+        $late_pm = 0;
+        $late_minutes = 0;
 
-            //shortEnglishDayOfWeek
+        //shortEnglishDayOfWeek
 
-            if($this->actual_time_in > $this->sched_time_in && ($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')))
-            {
-                $late_am = $this->actual_time_in->diff($this->sched_time_in);
-                $late_minutes =  ($late_am->i + ($late_am->h * 60));
-            }
+        if(!is_null($this->employee_object->grace_period))
+        {
+            // dd($this->employee_object->grace_period);
+            $this->sched_time_in = $this->sched_time_in->addMinutes($this->employee_object->grace_period);
+        }
 
-            // tardy on afternoon
-            if($this->actual_time_in > $this->sched_pm_time_in && ($this->actual_time_in < $this->sched_time_out))
-            {
-                $late_pm = $this->actual_time_in->diff($this->sched_pm_time_in);
-                $late_minutes =  ($late_pm->i + ($late_pm->h * 60));
-            }
+        if($this->actual_time_in > $this->sched_time_in && ($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')))
+        {
+            $late_am = $this->actual_time_in->diff($this->sched_time_in);
+            $late_minutes =  ($late_am->i + ($late_am->h * 60));
+        }
 
-            $this->log_object->late = $late_minutes;
+        // tardy on afternoon
+        if($this->actual_time_in > $this->sched_pm_time_in && ($this->actual_time_in < $this->sched_time_out))
+        {
+            $late_pm = $this->actual_time_in->diff($this->sched_pm_time_in);
+            $late_minutes =  ($late_pm->i + ($late_pm->h * 60));
+        }
+
+        $this->log_object->late = $late_minutes;
     }
 
     public function computeUnderTime()
@@ -156,13 +162,13 @@ class Day
 
             $leaves = $this->getFiledLeaves();
 
-            $hrs += $leaves;
+            // $hrs += $leaves;
             // $date = Carbon::createFromFormat('Y-m-d',)
             //  dd($this->log_object)
 
-            if($hrs < 8)
+            if(($hrs + $leaves) < 8)
             {
-                $this->log_object->awol = 8 - $hrs;
+                $this->log_object->awol = 8 - $hrs - $leaves;
             } 
 
         }
@@ -170,6 +176,10 @@ class Day
 
         $this->log_object->hrs = $hrs;
         $this->log_object->ndays =  round($this->log_object->hrs/8,2);
+
+        // if($this->log_object->dtr_date == '2025-07-21'){
+        //     dd($this->log_object,$am_hrs,$pm_hrs,$leaves);
+        // }
     }
 
     public function getFiledLeaves() : Float
@@ -181,7 +191,8 @@ class Day
             ->first();
 
         
-            return round($leave->hrs/8,2);
+            // return round($leave->hrs/8,2);
+            return round($leave->hrs,2);
         
         // SELECT SUM(with_pay + without_pay) FROM filed_leaves_vw WHERE biometric_id = AND leave_date = 
 

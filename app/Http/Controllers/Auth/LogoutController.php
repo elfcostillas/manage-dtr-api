@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class LogoutController extends Controller
 {
@@ -17,5 +19,9 @@ class LogoutController extends Controller
     {
         //
         auth()->guard('web')->logout();
+        Session::flush();
+
+        // Auth
+        // $request->user()->currentAccessToken()->delete();
     }
 }

@@ -4,6 +4,7 @@ namespace App\CustomClass\Logs;
 
 use App\CustomClass\Logs\Log;
 use Carbon\Carbon;
+use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class ClockOutOT extends Log
@@ -44,12 +45,16 @@ class ClockOutOT extends Log
         {
             $this->nextSchedLogin =  Carbon::createFromFormat('Y-m-d H:i', $this->row->dtr_date .' '.'12:00')->addDay();
         }
-
+       
         $self = DB::table('edtr_raw_vw')
         ->select('line_id','punch_date','punch_time','biometric_id','cstate','src','src_id','emp_id','new_cstate','t_stamp')
             // ->where('punch_date',$this->data->dtr_date)
             ->where('biometric_id',$this->row->biometric_id)
-            ->whereBetween('t_stamp',[$start,$this->nextSchedLogin])
+            // ->whereBetween('t_stamp',[$start,$this->nextSchedLogin])
+            ->where(function($query) use ($start){
+                $query->where('t_stamp','>=',$start);
+                $query->where('t_stamp','<=',$this->nextSchedLogin);
+            })
             ->where('cstate','=','OT/Out')
             ->first();
         

@@ -6,8 +6,10 @@ use App\CustomClass\CustomRequest;
 use App\CustomClass\LegalHoliday;
 use App\CustomClass\Logs\ClockIn;
 use App\CustomClass\Logs\ClockInOT;
+use App\CustomClass\Logs\ClockInOTAM;
 use App\CustomClass\Logs\ClockOut;
 use App\CustomClass\Logs\ClockOutOT;
+use App\CustomClass\Logs\ClockOutOTAM;
 use App\CustomClass\RegularDay;
 use App\CustomClass\SpecialHoliday;
 use App\Repository\DTRRepository;
@@ -102,9 +104,7 @@ class DTRService
 
     public function handleDrawRequest($emp_id,$period_id)
     {   
-
-        
-        DB::enableQueryLog();
+        // DB::enableQueryLog();
 
         $employee = $this->emp_repo->getEmployee($emp_id);
         
@@ -124,6 +124,22 @@ class DTRService
        
 
         foreach($dtr as $row){
+
+            $ot_in_am_obj = new ClockInOTAM($row);
+            $ot_in_am = $ot_in_am_obj->getLog();
+
+            if(!is_null($ot_in_am)){
+                $row->ot_in_am_id = $ot_in_am->line_id;
+                $row->ot_in_am = $ot_in_am->punch_time;
+            }
+
+            $ot_out_out_obj = new ClockOutOTAM($row);
+            $ot_out_out = $ot_out_out_obj->getLog();
+
+            if(!is_null($ot_out_out)){
+                $row->ot_out_am_id = $ot_out_out->line_id;
+                $row->ot_out_am = $ot_out_out->punch_time;
+            }
             
           
             $clock_in_obj = new ClockIn($row);
@@ -137,7 +153,7 @@ class DTRService
             }
            
             $nextLogin = $clock_in_obj->getNextLogin();
-            $nextDaySched = $clock_in_obj->getNextDaySchedule()->t_stamp;
+            $nextDaySched = (is_null($clock_in_obj->getNextDaySchedule())) ? null : $clock_in_obj->getNextDaySchedule()->t_stamp;
             
             $clock_out_obj = new ClockOut($row,$time_in,$nextLogin,$nextDaySched);
 
@@ -183,11 +199,8 @@ class DTRService
 
         }
 
-        $query = DB::getQueryLog();
-
-  
-
-        dd($query);
+        // $query = DB::getQueryLog();
+        // dd($query);
 
 
         return $dtr;
@@ -209,6 +222,12 @@ class DTRService
 
             $row->ot_out_id = null;
             $row->ot_out = null;
+
+            $row->ot_in_am_id = null;
+            $row->ot_in_am = null;
+
+            $row->ot_out_am_id = null;
+            $row->ot_out_am = null;
 
             $row->ndays = 0;
             $row->hrs = 0;
@@ -254,7 +273,7 @@ class DTRService
         //select line_id,punch_date,punch_time,cstate,src,src_id,emp_id,biometric_id 
         //from edtr_raw where biometric_id =  and punch_date 
 
-        $result = DB::table('edtr_raw') //edtr_detailed
+        $result = DB::table('edtr_raw') //edtr_detailed edtr_raw
             ->where('biometric_id','=',$employee->biometric_id)
             ->select('line_id','punch_date','punch_time','cstate','src','src_id','emp_id','biometric_id','new_cstate')
             ->whereBetween('punch_date',[$date_from->format('Y-m-d'),$date_to->format('Y-m-d')]);
