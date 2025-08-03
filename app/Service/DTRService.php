@@ -493,6 +493,37 @@ class DTRService
         }
     }
 
+    public function handeCompletingLogs($emp_id,$period_id)
+    {
+        $employee = $this->emp_repo->getEmployee($emp_id);
+        $period = $this->payperiod_repo->find($period_id);
+
+        $this->dtr_repo->clearMadeCompleteLogs($period,$employee);
+
+        $dtr = $this->dtr_repo->logsToComplete($period,$employee);
+
+        foreach($dtr as $row)
+        {
+           
+            if(is_null($row->hol_code)){
+                $ids = $this->dtr_repo->makeRawLogCinCout($row);
+                $row->time_in = $row->sched_time_in;
+                $row->time_in_id = $ids['time_in'];
+
+                $row->time_out = $row->sched_time_out;
+                $row->time_out_id = $ids['time_out'];
+
+                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
+
+                DB::table('edtr_detailed')
+                    ->where('id', $row->id)
+                    ->update($new_arr);
+            }
+           
+        }
+    }
+
     public function handleUpdateRequest($row)
     {
         $new_arr = CustomRequest::filter('edtr_detailed',$row);

@@ -174,6 +174,33 @@ class DTRRepository
         
     }
 
+    public function logsToComplete($payroll_period,$employee)
+    {
+      
+        $holidays = $this->get_holidays($payroll_period,$employee);
+
+        $dtr = DB::table('edtr_detailed')
+                ->leftJoinSub($holidays,'holidays',function($join){
+                    $join->on('holidays.holiday_date','=','edtr_detailed.dtr_date');
+                })
+                ->leftJoin('work_schedules','edtr_detailed.schedule_id','=','work_schedules.id')
+                ->where('emp_id','=',$employee->id)
+                ->whereBetween('dtr_date',[$payroll_period->date_from,$payroll_period->date_to])
+                ->whereNull('edtr_detailed.time_out')
+                ->whereNull('edtr_detailed.time_in')
+                ->select(DB::raw("
+                edtr_detailed.*,
+                hol_code,
+                work_schedules.time_in as sched_time_in,
+                work_schedules.time_out as sched_time_out,
+                work_schedules.out_am as sched_out_am,
+                work_schedules.in_pm as sched_in_pm
+                "))
+                ->orderBy('dtr_date','ASC');
+                
+        return $dtr->get();
+    }
+
     // public function fillOutLogOut($dtr)
     // {
     //     foreach($dtr as $log){
@@ -211,6 +238,53 @@ class DTRRepository
         return [
             'time_out' => $id1,
             'ot_in' => $id2,
+        ];
+    }
+
+    public function makeRawLogCinCout($row)
+    {
+
+        $id1 = null;
+        $id2 = null;
+
+      
+        if(!is_null($row->sched_time_in)){
+            $array_time_in = [
+                'punch_date' => $row->dtr_date,
+                'punch_time' => $row->sched_time_in,
+                'biometric_id' => $row->biometric_id,
+                'cstate' => 'C/In',
+                'src' => 'complete',
+                'src_id' => null,
+                'emp_id' => $row->emp_id,
+                'new_cstate' => null
+            ];
+
+            $id1 = DB::table('edtr_raw')->insertGetId($array_time_in);
+        }
+
+        
+        if(!is_null($row->sched_time_out)){
+            $array_time_out = [
+                'punch_date' => $row->dtr_date,
+                'punch_time' => $row->sched_time_out,
+                'biometric_id' => $row->biometric_id,
+                'cstate' => 'C/Out',
+                'src' => 'complete',
+                'src_id' => null,
+                'emp_id' => $row->emp_id,
+                'new_cstate' => null
+            ];
+
+            $id2 = DB::table('edtr_raw')->insertGetId($array_time_out);
+        }
+
+       
+        
+
+        return [
+            'time_in' => $id1,
+            'time_out' => $id2,
         ];
     }
 
@@ -260,6 +334,59 @@ class DTRRepository
             DB::table('edtr_raw')
             ->whereBetween('punch_date',[$payroll_period->date_from,$payroll_period->date_to])
             ->where('src','fill-out')
+            ->where('emp_id',$employee->id)
+            ->delete();
+        }
+
+        // dd($rawLogs);
+    }
+
+    public function clearMadeCompleteLogs($payroll_period,$employee)
+    {
+        $rawLogs = DB::table('edtr_raw')
+            ->whereBetween('punch_date',[$payroll_period->date_from,$payroll_period->date_to])
+            ->where('src','complete')
+            ->where('emp_id',$employee->id)
+            ->get();
+
+        foreach($rawLogs as $log)
+        {
+            switch($log->cstate){
+                case 'C/Out':
+                    $log = DB::table('edtr_detailed')
+                            ->where('time_out_id','=',$log->line_id)
+                            ->where('dtr_date','=',$log->punch_date)
+                           
+                            ->first();
+                    if($log){
+                        $log->time_out = null;
+                        $log->time_out_id = null;
+
+                        DB::table('edtr_detailed')->where('id','=',$log->id)->update((array) $log);
+                    }
+
+                    break;
+
+                case 'OT/In':
+                    $log = DB::table('edtr_detailed')
+                            ->where('ot_in_id','=',$log->line_id)
+                            ->where('dtr_date','=',$log->punch_date)
+                            
+                            ->first();
+                    if($log){
+                        $log->ot_in = null;
+                        $log->ot_in_id = null;
+
+                        DB::table('edtr_detailed')->where('id','=',$log->id)->update((array) $log);
+                    }
+
+                    break;
+
+            }
+
+            DB::table('edtr_raw')
+            ->whereBetween('punch_date',[$payroll_period->date_from,$payroll_period->date_to])
+            ->where('src','complete')
             ->where('emp_id',$employee->id)
             ->delete();
         }
