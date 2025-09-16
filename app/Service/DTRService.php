@@ -153,6 +153,7 @@ class DTRService
             }
            
             $nextLogin = $clock_in_obj->getNextLogin();
+           
             $nextDaySched = (is_null($clock_in_obj->getNextDaySchedule())) ? null : $clock_in_obj->getNextDaySchedule()->t_stamp;
             
             $clock_out_obj = new ClockOut($row,$time_in,$nextLogin,$nextDaySched);
@@ -232,6 +233,10 @@ class DTRService
             $row->ndays = 0;
             $row->hrs = 0;
             $row->awol = 0;
+            
+            $row->night_diff = 0;
+            $row->night_diff_ot = 0;
+
             $row->ut = 0;
             $row->late = 0;
             $row->late_eq = 0;
@@ -435,6 +440,10 @@ class DTRService
         $employee = $this->emp_repo->getEmployee($emp_id);
         $period = $this->payperiod_repo->find($period_id);
 
+        if(is_null($employee->location_id)){
+            dd($employee);
+        }
+
         $dtr = $this->dtr_repo->getDTR($period,$employee);
 
         //Act as factory
@@ -502,6 +511,8 @@ class DTRService
 
         $dtr = $this->dtr_repo->logsToComplete($period,$employee);
 
+      
+
         foreach($dtr as $row)
         {
            
@@ -512,6 +523,20 @@ class DTRService
 
                 $row->time_out = $row->sched_time_out;
                 $row->time_out_id = $ids['time_out'];
+
+                $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
+
+
+                DB::table('edtr_detailed')
+                    ->where('id', $row->id)
+                    ->update($new_arr);
+            }else{
+                // $ids = $this->dtr_repo->makeRawLogCinCout($row);
+                $row->time_in = null;
+                $row->time_in_id = null;
+
+                $row->time_out = null;
+                $row->time_out_id = null;
 
                 $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
 

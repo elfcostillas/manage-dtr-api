@@ -88,6 +88,8 @@ Route::prefix('timekeeping')->group(function(){
         Route::post('complete-logs',[ManageDTRController::class,'completeLogs']);
       
         Route::post('update-logs',[ManageDTRController::class,'updateLog']);
+
+        Route::get('draw-all-logs/{period_id}',[ManageDTRController::class,'drawAllLogs']);
     });
 
     Route::prefix('logs')->group(function(){

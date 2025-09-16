@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repository\DTRRepository;
 use App\Service\DTRService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ManageDTRController extends Controller
 {
@@ -56,5 +57,21 @@ class ManageDTRController extends Controller
     {
         $result = $this->dtr_service->handeCompletingLogs($request->emp_id,$request->period_id);
         return $this->jsonResponse($result,null,'success');
+    }
+
+    public function drawAllLogs(Request $request)
+    {
+        // dd($request->period_id);
+        //$result = $this->dtr_service->handleDrawRequest($request->emp_id,$request->period_id);
+
+        $ids = DB::table('employees')->select('id')->where('emp_level','<',5)->where('exit_status',1)->get();
+
+        foreach($ids as $emp){
+            // dd($emp->biometric_id);
+            $this->dtr_service->handleDrawRequest($emp->id,$request->period_id);
+            $this->dtr_service->handleComputeRequest($emp->id,$request->period_id);
+        }
+
+        dd(now(),'done');
     }
 }

@@ -186,8 +186,8 @@ class DTRRepository
                 ->leftJoin('work_schedules','edtr_detailed.schedule_id','=','work_schedules.id')
                 ->where('emp_id','=',$employee->id)
                 ->whereBetween('dtr_date',[$payroll_period->date_from,$payroll_period->date_to])
-                ->whereNull('edtr_detailed.time_out')
-                ->whereNull('edtr_detailed.time_in')
+                // ->whereNull('edtr_detailed.time_out')
+                // ->whereNull('edtr_detailed.time_in')
                 ->select(DB::raw("
                 edtr_detailed.*,
                 hol_code,

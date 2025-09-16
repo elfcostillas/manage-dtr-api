@@ -33,10 +33,15 @@ class ClockOut extends Log
         //var_dump($this->row->dtr_date,$this->row->sched_time_in);
     
 
-        $time = (is_null($this->row->sched_time_in) || $this->row->sched_time_in=='') ? '00:00' : $this->row->sched_time_in;
+        $time = (is_null($this->row->sched_time_in) || $this->row->sched_time_in=='' || $this->row->sched_time_in=='RD') ? '00:00' : $this->row->sched_time_in;
         
-        $sched_in = Carbon::createFromFormat('Y-m-d H:i', $this->row->dtr_date .' '. $time)->format('Y-m-d H:i:s.u');
+        try{
+            $sched_in = Carbon::createFromFormat('Y-m-d H:i', $this->row->dtr_date .' '. $time)->format('Y-m-d H:i:s.u');
 
+        }catch(\Exception $e){
+            dd($time);
+        }   
+        
         $start = $this->time_in->t_stamp ?? $sched_in;
 
         if(is_null($this->nextSchedLogin))

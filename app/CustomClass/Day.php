@@ -4,6 +4,8 @@ namespace App\CustomClass;
 
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Error;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -60,7 +62,12 @@ class Day
     public function convertToTime($date,$time)
     {
         $string = $date.' '.$time;
-        return Carbon::createFromFormat('Y-m-d H:i',$string);
+        try {
+            return Carbon::createFromFormat('Y-m-d H:i',$string);
+        }catch(Exception | Error $e ){
+            // dd($date,$time,$e);
+        }
+        
     }
 
     public function computeLate()
@@ -251,6 +258,7 @@ class Day
 
     public function compute()
     {
+        // dd($this->log_object->hol_code);
        
         $time_in = $this->log_object->time_in;
         $time_out = $this->log_object->time_out;
@@ -267,55 +275,58 @@ class Day
         $this->log_object->awol = 0;
         $this->log_object->late_minutes = 0;
 
-        if(!is_null($time_in)  && !is_null($time_out)){
-            $this->makeSchedule(); // make schedule; set date to next day
-            // dd($this->convertToTime($this->log_object->dtr_date,$this->log_object->time_in)->format('Y-m-d H:i'));
-            $this->makeworkedTime();
-           
-            // $period = CarbonPeriod::create($this->actual_time_in,'1 Minute',$this->actual_time_out);
+        if(is_null($this->log_object->hol_code)){
 
-            $this->computeLate();
-            $this->computeUnderTime();
-            $this->computeHours();
+            if(!is_null($time_in)  && !is_null($time_out)){
+                $this->makeSchedule(); // make schedule; set date to next day
+                // dd($this->convertToTime($this->log_object->dtr_date,$this->log_object->time_in)->format('Y-m-d H:i'));
+                $this->makeworkedTime();
+            
+                // $period = CarbonPeriod::create($this->actual_time_in,'1 Minute',$this->actual_time_out);
 
-            $this->computeNightDiff();
-            $this->computeOverTime();
+                $this->computeLate();
+                $this->computeUnderTime();
+                $this->computeHours();
 
-          
+                $this->computeNightDiff();
+                $this->computeOverTime();
 
-        }else{
+            
 
-            /* for ni clock-in / clock-out */
+            }else{
 
-            $date = Carbon::createFromFormat('Y-m-d',$this->log_object->dtr_date);
+                /* for ni clock-in / clock-out */
 
-            switch($date->shortDayName)
-            {
-                case 'Mon' :
-                case 'Tue' :
-                case 'Wed' :
-                case 'Thu' :
-                case 'Fri' :
-                    $leaves = $this->getFiledLeaves();
-                        $this->log_object->awol = 8 - $leaves;
-                    break;
+                $date = Carbon::createFromFormat('Y-m-d',$this->log_object->dtr_date);
 
-                case 'Sat' :
-                    // dd($this->log_object );
-                    $leaves = $this->getFiledLeaves();
-                    if(!is_null($this->log_object->schedule_id) && $this->log_object->schedule_id != 0 ){
-                        $this->log_object->awol = 8 - $leaves;
-                    } else {
-                        $this->log_object->awol = 0;
-                    }
+                switch($date->shortDayName)
+                {
+                    case 'Mon' :
+                    case 'Tue' :
+                    case 'Wed' :
+                    case 'Thu' :
+                    case 'Fri' :
+                        $leaves = $this->getFiledLeaves();
+                            $this->log_object->awol = 8 - $leaves;
+                        break;
 
-                    break;
+                    case 'Sat' :
+                        // dd($this->log_object );
+                        $leaves = $this->getFiledLeaves();
+                        if(!is_null($this->log_object->schedule_id) && $this->log_object->schedule_id != 0 ){
+                            $this->log_object->awol = 8 - $leaves;
+                        } else {
+                            $this->log_object->awol = 0;
+                        }
+
+                        break;
 
 
-                case 'Sun' :
+                    case 'Sun' :
 
-                    break;
-                
+                        break;
+                    
+                }
             }
             
 

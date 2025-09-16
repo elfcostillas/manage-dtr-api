@@ -68,6 +68,10 @@ class ClockIn extends Log
         $nextSched = DB::table('edtr_detailed')
             ->leftJoin('work_schedules','edtr_detailed.schedule_id','=','work_schedules.id')
             ->select(DB::raw("timestamp(`edtr_detailed`.`dtr_date`,`work_schedules`.`time_in`) AS `t_stamp`"))
+            ->where(function($qry){
+                $qry->where('work_schedules.time_in','!=','RD');
+                $qry->where('work_schedules.time_out','!=','RD');
+            })
             ->where('dtr_date','=',$nextDay)
             ->where('biometric_id',$this->data->biometric_id);
 
