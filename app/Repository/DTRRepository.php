@@ -19,6 +19,7 @@ class DTRRepository
 
     public function getDTR($payroll_period,$employee)
     {
+       
         // dd($payroll_period,$employee);
         $holidays = $this->get_holidays($payroll_period,$employee);
 

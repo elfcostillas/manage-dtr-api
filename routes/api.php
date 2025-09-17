@@ -8,6 +8,8 @@ use App\Http\Controllers\Timekeeping\ManageDTRController;
 use App\Http\Controllers\Timekeeping\PayrollPeriodController;
 use App\Http\Controllers\Timekeeping\RawLogsController;
 use App\Http\Controllers\User\UserRightsController;
+use App\ScheduledTask\TimeKeeper;
+use App\Service\DTRService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +27,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('run',function(){
+    $time_keeper = new TimeKeeper();
+
+}); 
 
 Route::middleware('auth:sanctum')->get('/navigator/user-modules', UserModuleController::class);
 

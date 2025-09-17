@@ -112,13 +112,18 @@ class DTRService
             $this->employee = $employee;
         }
 
-        $period = $this->payperiod_repo->find($period_id);
-        
+        if(is_object($period_id)){
+            $period = $period_id;
+        }else{
+            $period = $this->payperiod_repo->find($period_id);
+        }
+
         /* prepare DTR by setting biometric_id */
         // echo now().'clear raw logs  <br>';
         $this->prepareDtrRaw($emp_id);
         // echo now().'get dtr  <br>';
         $dtr = $this->dtr_repo->getDTR($period,$employee);
+        
         // echo now().'clear dtr  <br>';
         $this->clearDailyLogsToProcess($dtr);
        
@@ -438,7 +443,13 @@ class DTRService
     public function handleComputeRequest($emp_id,$period_id)
     {
         $employee = $this->emp_repo->getEmployee($emp_id);
-        $period = $this->payperiod_repo->find($period_id);
+
+        if(is_object($period_id)){
+            $period = $period_id;
+        }else{
+            $period = $this->payperiod_repo->find($period_id);
+        }
+        // $period = $this->payperiod_repo->find($period_id);
 
         if(is_null($employee->location_id)){
             dd($employee);

@@ -84,11 +84,16 @@ class Day
             $this->sched_time_in = $this->sched_time_in->addMinutes($this->employee_object->grace_period);
         }
 
-        if($this->actual_time_in > $this->sched_time_in && ($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')))
+        if(!is_null($this->sched_am_time_out))
         {
-            $late_am = $this->actual_time_in->diff($this->sched_time_in);
-            $late_minutes =  ($late_am->i + ($late_am->h * 60));
+            if($this->actual_time_in > $this->sched_time_in && ($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')))
+            {
+                $late_am = $this->actual_time_in->diff($this->sched_time_in);
+                $late_minutes =  ($late_am->i + ($late_am->h * 60));
+            }
         }
+
+     
 
         // tardy on afternoon
         if($this->actual_time_in > $this->sched_pm_time_in && ($this->actual_time_in < $this->sched_time_out))
@@ -135,12 +140,15 @@ class Day
         $am_hrs = 0;
 
         // dd($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes'));
-
-        if($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')){
-            $am_hrs = 4;
-        }else{
-            $am_hrs = 0;
+        if(!is_null($this->sched_am_time_out))
+        {
+            if($this->actual_time_in < $this->sched_am_time_out->sub('15 minutes')){
+                $am_hrs = 4;
+            }else{
+                $am_hrs = 0;
+            }
         }
+        
 
         if($this->actual_time_out < $this->sched_pm_time_in){
             $pm_hrs = 0;

@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\ScheduledTask\TimeKeeper;
 
 class Kernel extends ConsoleKernel
 {
@@ -13,6 +14,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+
+        $schedule->call(function (){
+            $time_keeper = new TimeKeeper();
+        })->dailyAt('1:00');
     }
 
     /**
