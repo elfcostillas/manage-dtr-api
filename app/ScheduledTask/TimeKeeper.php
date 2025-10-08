@@ -22,7 +22,7 @@ class TimeKeeper
         echo 'START :: '. now() .'<br>';
 
         $this->service =  app(DTRService::class);
-        $this->yesterday = now()->subDay(2);
+        $this->yesterday = now()->subDay();
 
         $this->employees = DB::table('employees')->where('exit_status',1)->get();
 
