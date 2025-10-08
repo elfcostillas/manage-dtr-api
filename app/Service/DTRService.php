@@ -177,7 +177,8 @@ class DTRService
             // dd($row,$time_in,$nextLogin,$nextDaySched);
             $clockin_ot_obj = new ClockInOT($row,$time_in,$nextLogin,$nextDaySched);
             $clockin_ot = $clockin_ot_obj->getLog();
-            
+          
+          
             if(!is_null($clockin_ot)){
                 $row->ot_in_id = $clockin_ot->line_id;
                 $row->ot_in = $clockin_ot->punch_time;
@@ -185,6 +186,7 @@ class DTRService
 
             $clockout_ot_obj = new ClockOutOT($row,$time_in,$nextLogin,$nextDaySched);
             $clockout_ot = $clockout_ot_obj->getLog();
+
             
             if(!is_null($clockout_ot)){
                 $row->ot_out_id = $clockout_ot->line_id;
