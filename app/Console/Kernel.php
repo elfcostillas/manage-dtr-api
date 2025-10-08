@@ -17,7 +17,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->call(function (){
             $time_keeper = new TimeKeeper();
-        })->dailyAt('1:00');
+        })
+        ->dailyAt('10:00');
     }
 
     /**
