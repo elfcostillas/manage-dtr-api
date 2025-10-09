@@ -6,7 +6,7 @@ use App\Http\Controllers\Timekeeping\FTPApprovalController;
 use App\Http\Controllers\Timekeeping\FTPController;
 use App\Http\Controllers\Timekeeping\ManageDTRController;
 use App\Http\Controllers\Timekeeping\PayrollPeriodController;
-use App\Http\Controllers\TimeKeeping\PayrollPeriodSGController;
+use App\Http\Controllers\Timekeeping\PayrollPeriodSGController;
 use App\Http\Controllers\Timekeeping\RawLogsController;
 use App\Http\Controllers\User\UserRightsController;
 use App\ScheduledTask\TimeKeeper;
@@ -69,7 +69,7 @@ Route::prefix('timekeeping')->group(function(){
     Route::prefix('sg-payroll-period')->group(function(){ 
         Route::get('index',[PayrollPeriodSGController::class,'index']);
         Route::post('prepare',[PayrollPeriodSGController::class,'prepare']);
-          Route::get('list',[PayrollPeriodSGController::class,'list']);
+        Route::get('list',[PayrollPeriodSGController::class,'list']);
     });
 
     Route::prefix('ftp')->group(function(){ 
