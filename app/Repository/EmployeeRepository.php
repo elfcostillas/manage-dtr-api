@@ -80,6 +80,16 @@ class EmployeeRepository
         return $result;
     }
 
+    public function employeeActiveSG()
+    {
+        $result = DB::table('employees')
+            ->where('exit_status',1)
+            ->where('emp_level','=',6)
+            ->get();
+        
+        return $result;
+    }
+
     public function getEmployee($emp_id)
     {
         return DB::table('employees')

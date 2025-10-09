@@ -67,7 +67,7 @@ class TimeKeeper
         {
             $period  = DB::table('payroll_period_weekly')->whereRaw(DB::raw( "'{$this->yesterday->format('Y-m-d')}' BETWEEN date_from and date_to"))->first();
         }else{
-            $period  = DB::table('payroll_period');
+            // $period  = DB::table('payroll_period');
             $period  = DB::table('payroll_period')->whereRaw(DB::raw( "'{$this->yesterday->format('Y-m-d')}' BETWEEN date_from and date_to"))->first();
         }
 
