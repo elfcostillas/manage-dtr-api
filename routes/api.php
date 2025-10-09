@@ -53,6 +53,7 @@ Route::prefix('master-data')->group(function(){
             Route::get('user-list',[UserRightsController::class,'list']);
             Route::get('user-modules',[UserRightsController::class,'modules_list']);
             Route::post('save-rights',[UserRightsController::class,'saveRights']);
+            Route::post('show-rights',[UserRightsController::class,'showRights']);
         });
 });
 

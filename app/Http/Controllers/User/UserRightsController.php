@@ -41,5 +41,14 @@ class UserRightsController extends Controller
 
         return response()->json($result);
     }
+
+    public function showRights(Request $request)
+    {
+        $result = $this->repo->showRights($request->user);
+        return $this->jsonResponse($result,null,'success');
+
+        // return response()->json($request->user['id']);
+        // return $this->jsonResponse($request->user,null,'success');
+    }
     
 }
