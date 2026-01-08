@@ -15,6 +15,7 @@ use App\CustomClass\SpecialHoliday;
 use App\Repository\DTRRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\SemiMonthlyPayrollPeriodRepository;
+use App\Repository\SupportGroupPayrollPeriodRepository;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\FuncCall;
 use Carbon\Carbon;
@@ -25,7 +26,7 @@ use function Psy\debug;
 class DTRService
 {
     //
-    public function __construct(private DTRRepository $dtr_repo,private EmployeeRepository $emp_repo,private SemiMonthlyPayrollPeriodRepository $payperiod_repo)
+    public function __construct(private DTRRepository $dtr_repo,private EmployeeRepository $emp_repo,private SemiMonthlyPayrollPeriodRepository $payperiod_repo,private SupportGroupPayrollPeriodRepository $sg_payperiod_repo)
     {
         
     }
@@ -112,10 +113,19 @@ class DTRService
             $this->employee = $employee;
         }
 
-        if(is_object($period_id)){
-            $period = $period_id;
+        if($employee->emp_level == 6){
+            echo "sg detected";
+            if(is_object($period_id)){
+                $period = $period_id;
+            }else{
+                $period = $this->sg_payperiod_repo->find($period_id);
+            }
         }else{
-            $period = $this->payperiod_repo->find($period_id);
+            if(is_object($period_id)){
+                $period = $period_id;
+            }else{
+                $period = $this->payperiod_repo->find($period_id);
+            }
         }
 
         /* prepare DTR by setting biometric_id */
@@ -446,11 +456,25 @@ class DTRService
     {
         $employee = $this->emp_repo->getEmployee($emp_id);
 
-        if(is_object($period_id)){
-            $period = $period_id;
+        if($employee->emp_level == 6){
+            if(is_object($period_id)){
+                $period = $period_id;
+            }else{
+                $period = $this->sg_payperiod_repo->find($period_id);
+            }
         }else{
-            $period = $this->payperiod_repo->find($period_id);
+            if(is_object($period_id)){
+                $period = $period_id;
+            }else{
+                $period = $this->payperiod_repo->find($period_id);
+            }
         }
+
+        // if(is_object($period_id)){
+        //     $period = $period_id;
+        // }else{
+        //     $period = $this->payperiod_repo->find($period_id);
+        // }
         // $period = $this->payperiod_repo->find($period_id);
 
         if(is_null($employee->location_id)){

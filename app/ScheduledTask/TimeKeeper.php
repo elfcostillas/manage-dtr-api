@@ -37,9 +37,6 @@ class TimeKeeper
                 $this->service->handleComputeRequest($employee->id,$period);
             }
 
-            
-
-
         }
 
         echo 'END :: '. now() .'<br>';
