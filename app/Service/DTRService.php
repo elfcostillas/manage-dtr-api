@@ -539,6 +539,55 @@ class DTRService
         }
     }
 
+    public function handeClearingLogs($emp_id,$period_id)
+    {
+        $employee = $this->emp_repo->getEmployee($emp_id);
+        $period = $this->payperiod_repo->find($period_id);
+
+        $logs = $this->dtr_repo->getGeneratedLogs($period,$employee);
+
+        $tmp_ids = [];
+
+        foreach($logs as $log)
+        {
+            array_push($tmp_ids,$log->line_id);
+            switch($log->cstate)
+            {
+                case 'C/In' :
+                        DB::table('edtr_detailed')->where('time_in_id',$log->line_id)->update([
+                            'time_in_id' => null,
+                            'time_in' => null,
+                        ]);
+                    break;
+
+                case 'C/Out' :
+                    DB::table('edtr_detailed')->where('time_out_id',$log->line_id)->update([
+                            'time_out_id' => null,
+                            'time_out' => null,
+                        ]);
+                    break;
+
+                case 'OT/In' :
+                    DB::table('edtr_detailed')->where('ot_in_id',$log->line_id)->update([
+                            'ot_in_id' => null,
+                            'ot_in' => null,
+                        ]);
+                    break;
+
+                case 'OT/Out' :
+                    DB::table('edtr_detailed')->where('ot_out_id',$log->line_id)->update([
+                            'ot_out_id' => null,
+                            'ot_out' => null,
+                        ]);
+                    break;
+            }
+        }
+
+        $raws = DB::table('edtr_raw')->whereIn('line_id', $tmp_ids )->delete();
+
+        return $logs;
+    }
+
     public function handeCompletingLogs($emp_id,$period_id)
     {
         $employee = $this->emp_repo->getEmployee($emp_id);
@@ -547,8 +596,6 @@ class DTRService
         $this->dtr_repo->clearMadeCompleteLogs($period,$employee);
 
         $dtr = $this->dtr_repo->logsToComplete($period,$employee);
-
-      
 
         foreach($dtr as $row)
         {

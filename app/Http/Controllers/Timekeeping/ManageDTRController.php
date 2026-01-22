@@ -44,6 +44,7 @@ class ManageDTRController extends Controller
     public function fillOutLogs(Request $request)
     {
         $result = $this->dtr_service->handeFillOutLogs($request->emp_id,$request->period_id);
+        
         return $this->jsonResponse($result,null,'success');
     }
 
@@ -56,6 +57,12 @@ class ManageDTRController extends Controller
     public function completeLogs(Request $request)
     {
         $result = $this->dtr_service->handeCompletingLogs($request->emp_id,$request->period_id);
+        return $this->jsonResponse($result,null,'success');
+    }
+
+    public function clearLogs(Request $request)
+    {
+        $result = $this->dtr_service->handeClearingLogs($request->emp_id,$request->period_id);
         return $this->jsonResponse($result,null,'success');
     }
 

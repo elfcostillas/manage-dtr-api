@@ -101,6 +101,9 @@ Route::prefix('timekeeping')->group(function(){
          
         Route::get('complete-logs/{period_id}/{emp_id}',[ManageDTRController::class,'completeLogs']);
         Route::post('complete-logs',[ManageDTRController::class,'completeLogs']);
+
+        Route::get('clear-logs/{period_id}/{emp_id}',[ManageDTRController::class,'clearLogs']);
+        Route::post('clear-logs',[ManageDTRController::class,'clearLogs']);
       
         Route::post('update-logs',[ManageDTRController::class,'updateLog']);
 

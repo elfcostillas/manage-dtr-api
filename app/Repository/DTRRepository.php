@@ -211,8 +211,19 @@ class DTRRepository
 
     public function makeRawLog($row)
     {
+        // dd($row->sched_time_in,$row->sched_time_out);
+        // dd($row->time_in,$row->time_out);
+
+        $dtr_date = Carbon::createFromFormat('Y-m-d',$row->dtr_date);
+
+
+        if( strtotime($row->sched_time_in) > strtotime($row->sched_time_out))
+        {
+            $dtr_date->addDay();
+        }
+
         $array_time_out = [
-            'punch_date' => $row->dtr_date,
+            'punch_date' => $dtr_date->format('Y-m-d'),
             'punch_time' => $row->sched_time_out,
             'biometric_id' => $row->biometric_id,
             'cstate' => 'C/Out',
@@ -223,7 +234,7 @@ class DTRRepository
         ];
 
         $array_ot_in = [
-            'punch_date' => $row->dtr_date,
+            'punch_date' => $dtr_date->format('Y-m-d'),
             'punch_time' => $row->sched_time_out,
             'biometric_id' => $row->biometric_id,
             'cstate' => 'OT/In',
@@ -393,6 +404,17 @@ class DTRRepository
         }
 
         // dd($rawLogs);
+    }
+
+    public function getGeneratedLogs($period,$employee)
+    {
+        $result = DB::table('edtr_raw')
+            ->where('biometric_id',$employee->biometric_id)
+            ->whereBetween('punch_date',[$period->date_from,$period->date_to])
+            ->whereIn('src',['complete','fill-out'])
+            ->get();
+        
+        return $result;
     }
 
 }
