@@ -6,6 +6,9 @@ use App\CustomClass\Logs\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+use App\Repository\DTRRepository;
+use App\Repository\EmployeeRepository;
+
 class ClockIn extends Log
 {
     //
@@ -19,15 +22,27 @@ class ClockIn extends Log
     // }
 
     public function buildSelf() : void {
-       
+      
+        /*
         $self = DB::table('edtr_raw_vw')
             ->select('line_id','punch_date','punch_time','biometric_id','cstate','src','src_id','emp_id','new_cstate','t_stamp')
             ->where('punch_date',$this->data->dtr_date)
             ->where('biometric_id',$this->data->biometric_id)
             ->where('cstate','=','C/In')
             ->first();
-        
+        */
+
+        $repo = app(DTRRepository::class);
+        $emp_repo = app(EmployeeRepository::class);
+
+        $employee = $emp_repo->getEmployee($this->data->emp_id);
+
+        $self = $repo->getLog($employee,$this->data,'C/In');
+
+
         $this->log = $self;
+        
+        // $this->log = $self;
 
         // dd($this->data->dtr_date,$this->data->biometric_id);
 

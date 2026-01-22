@@ -137,7 +137,6 @@ class DTRService
         // echo now().'clear dtr  <br>';
         $this->clearDailyLogsToProcess($dtr);
        
-
         foreach($dtr as $row){
 
             $ot_in_am_obj = new ClockInOTAM($row);
@@ -155,7 +154,7 @@ class DTRService
                 $row->ot_out_am_id = $ot_out_out->line_id;
                 $row->ot_out_am = $ot_out_out->punch_time;
             }
-            
+           
           
             $clock_in_obj = new ClockIn($row);
 
@@ -165,14 +164,17 @@ class DTRService
 
                 $row->time_in_id = $time_in->line_id;
                 $row->time_in = $time_in->punch_time;
+
             }
+
+           
            
             $nextLogin = $clock_in_obj->getNextLogin();
            
             $nextDaySched = (is_null($clock_in_obj->getNextDaySchedule())) ? null : $clock_in_obj->getNextDaySchedule()->t_stamp;
-            
+           
             $clock_out_obj = new ClockOut($row,$time_in,$nextLogin,$nextDaySched);
-
+         
             $time_out = $clock_out_obj->getLog();
 
             // if($row->dtr_date == '2025-06-21'){
@@ -184,7 +186,6 @@ class DTRService
                 $row->time_out = $time_out->punch_time;
             }
 
-            // dd($row,$time_in,$nextLogin,$nextDaySched);
             $clockin_ot_obj = new ClockInOT($row,$time_in,$nextLogin,$nextDaySched);
             $clockin_ot = $clockin_ot_obj->getLog();
           
@@ -202,7 +203,6 @@ class DTRService
                 $row->ot_out_id = $clockout_ot->line_id;
                 $row->ot_out = $clockout_ot->punch_time;
             }
-
 
             $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
 

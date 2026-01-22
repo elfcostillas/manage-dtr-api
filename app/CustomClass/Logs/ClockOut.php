@@ -3,6 +3,8 @@
 namespace App\CustomClass\Logs;
 
 use App\CustomClass\Logs\Log;
+use App\Repository\DTRRepository;
+use App\Repository\EmployeeRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -60,12 +62,10 @@ class ClockOut extends Log
         //     dd($this->nextSchedLogin); // if null make default range
         // }
 
-       
+        /*
         $self = DB::table('edtr_raw_vw')
-            // ->where('punch_date',$this->data->dtr_date)
             ->select('line_id','punch_date','punch_time','biometric_id','cstate','src','src_id','emp_id','new_cstate','t_stamp')
             ->where('biometric_id',$this->row->biometric_id)
-            // ->whereBetween('t_stamp',[$start,$this->nextSchedLogin])
             ->where(function($query) use ($start){
                 $query->where('t_stamp','>=',$start);
                 $query->where('t_stamp','<=',$this->nextSchedLogin);
@@ -74,8 +74,15 @@ class ClockOut extends Log
             ->first();
         
         $this->log = $self;
+        */
+        $repo = app(DTRRepository::class);
+        $emp_repo = app(EmployeeRepository::class);
 
-        // dd($this->data->dtr_date,$this->data->biometric_id);
+        $employee = $emp_repo->getEmployee($this->row->emp_id);
+      
+        $self = $repo->getLog($employee,$this->row,'C/Out');
+
+        $this->log = $self;
 
     }
 
