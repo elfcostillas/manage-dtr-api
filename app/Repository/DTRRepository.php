@@ -76,11 +76,8 @@ class DTRRepository
         $carbondate = Carbon::createFromFormat('Y-m-d',$row->dtr_date);
 
         $from = $row->dtr_date .' '. $row->sched_time_in;
-        $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_out_am;
-
+      
         $raw_dtr = DB::table('edtr_raw_vw')->where('emp_id','=',$employee->id);
-
-
 
         switch($type){
             case 'C/In' : 
@@ -107,6 +104,7 @@ class DTRRepository
 
                 break;
             case 'OT/In' : 
+                $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_out_am;
                 if(is_null($row->time_in)){
                     return null;
                 }
@@ -119,6 +117,7 @@ class DTRRepository
                 break;
 
             case 'OT/Out' : 
+                $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_out_am;
                 if(is_null($row->time_in)){
                     return null;
                 }
@@ -178,10 +177,10 @@ class DTRRepository
             //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
             // }
             
-        // if($row->dtr_date == '2026-01-02' && $type == 'C/Out')
-        // {
-        //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
-        // }
+        if($row->dtr_date == '2026-01-09' && $type == 'C/Out')
+        {
+            dd($raw_dtr->toSql(),$raw_dtr->getBindings());
+        }
         return $raw_dtr->first();
         
     }
