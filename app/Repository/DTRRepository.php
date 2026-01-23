@@ -177,10 +177,10 @@ class DTRRepository
             //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
             // }
             
-        if($row->dtr_date == '2026-01-09' && $type == 'C/Out')
-        {
-            dd($raw_dtr->toSql(),$raw_dtr->getBindings());
-        }
+        // if($row->dtr_date == '2026-01-09' && $type == 'C/Out')
+        // {
+        //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
+        // }
         return $raw_dtr->first();
         
     }
