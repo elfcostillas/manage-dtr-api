@@ -29,7 +29,7 @@ class DTRRepository
                 })
                 ->leftJoin('work_schedules','edtr_detailed.schedule_id','=','work_schedules.id')
                 ->where('emp_id','=',$employee->id)
-                //  ->where('dtr_date','=','2026-01-01')
+                // ->where('dtr_date','=','2026-01-07')
                 ->whereBetween('dtr_date',[$payroll_period->date_from,$payroll_period->date_to])
                 ->select(DB::raw("
                 edtr_detailed.*,
@@ -75,7 +75,12 @@ class DTRRepository
         // dd($employee,$row->dtr_date,$type);
         $carbondate = Carbon::createFromFormat('Y-m-d',$row->dtr_date);
 
+        $from = $row->dtr_date .' '. $row->sched_time_in;
+        $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_out_am;
+
         $raw_dtr = DB::table('edtr_raw_vw')->where('emp_id','=',$employee->id);
+
+
 
         switch($type){
             case 'C/In' : 
@@ -91,19 +96,47 @@ class DTRRepository
                 if(is_null($row->time_in)){
                     return null;
                 }
+                 $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
                 $used =  DB::table('edtr_detailed')
                     ->select('time_out_id')
                     ->whereNotNull('time_out_id')
                     ->where('emp_id','=',$employee->id);
 
-                $raw_dtr->whereBetween('punch_date',[$carbondate->format('Y-m-d'),$carbondate->addDay()->format('Y-m-d')]);
-                if((!is_null($row->time_in)) && $this->time_to_sec($row->sched_time_in) > $this->time_to_sec($row->sched_time_out)){
-                    
-                    $raw_dtr->where(DB::raw("time_to_sec(punch_time)"),'<',$this->time_to_sec($row->sched_time_in));
+                break;
+            case 'OT/In' : 
+                if(is_null($row->time_in)){
+                    return null;
                 }
+                 $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+                $used =  DB::table('edtr_detailed')
+                    ->select('ot_in_id')
+                    ->whereNotNull('ot_in_id')
+                    ->where('emp_id','=',$employee->id);
+
+                break;
+
+            case 'OT/Out' : 
+                if(is_null($row->time_in)){
+                    return null;
+                }
+                 $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+                $used =  DB::table('edtr_detailed')
+                    ->select('ot_out_id')
+                    ->whereNotNull('ot_out_id')
+                    ->where('emp_id','=',$employee->id);    
+
+                // $raw_dtr->whereBetween('punch_date',[$carbondate->format('Y-m-d'),$carbondate->addDay()->format('Y-m-d')]);
+                // if((!is_null($row->time_in)) && ($this->time_to_sec($row->sched_time_in) > $this->time_to_sec($row->sched_time_out))){
+                //     $raw_dtr->where(DB::raw("time_to_sec(punch_time)"),'<',$this->time_to_sec($row->sched_time_in));
+                // }else{
+                //     return null;
+                // }
+
+              
                
 
                 break;
+            /*   
             case 'OT/In' : 
                 $used =  DB::table('edtr_detailed')
                     ->select('ot_in_id')
@@ -116,30 +149,22 @@ class DTRRepository
                 }
                 break;
             case 'OT/Out' : 
-                // dd($row);
+                
                 $used =  DB::table('edtr_detailed')
                     ->select('ot_out_id')
                     ->whereNotNull('ot_out_id')
                     ->where('emp_id','=',$employee->id);
 
                 $raw_dtr->whereBetween('punch_date',[$carbondate->format('Y-m-d'),$carbondate->addDay()->format('Y-m-d')]);
-                if($this->time_to_sec($row->sched_time_in) > $this->time_to_sec($row->sched_time_out)){
-                    $raw_dtr->where(DB::raw("time_to_sec(punch_time)"),'<',$this->time_to_sec($row->sched_time_in));
-                }
 
-                // $time_in_of_the_day =  DB::table('edtr_raw_vw')
-                //     ->where('emp_id','=',$employee->id)
-                //     ->where('punch_date','>=',$row->dtr_date)
-                //     ->where('cstate','=','C/In')
-                //     ->whereNotIn('line_id',$used)
-                //     ->orderBy('punch_date','ASC')
-                //     ->orderBy('punch_time','ASC')
-                //     ->first();
+                $raw_dtr->where(DB::raw("time_to_sec(punch_time)"),'<',$this->time_to_sec($row->sched_out_am));
+               
                 break;
+            */
 
                
         };
-
+           
             $raw_dtr->where('cstate','=',$type)->whereNotIn('line_id',$used);
 
             $raw_dtr->orderBy('punch_date','ASC')
@@ -150,7 +175,10 @@ class DTRRepository
             //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
             // }
             
-        
+        // if($row->dtr_date == '2026-01-02' && $type == 'C/Out')
+        // {
+        //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
+        // }
         return $raw_dtr->first();
         
     }

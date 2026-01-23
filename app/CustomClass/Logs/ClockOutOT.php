@@ -6,6 +6,8 @@ use App\CustomClass\Logs\Log;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use App\Repository\DTRRepository;
+use App\Repository\EmployeeRepository;
 
 class ClockOutOT extends Log
 {
@@ -33,7 +35,7 @@ class ClockOutOT extends Log
     
     public function buildSelf() : void {
 
-    
+        /*
         $time = (is_null($this->row->sched_time_in) || $this->row->sched_time_in=='' || $this->row->sched_time_in=='RD') ? '00:00' : $this->row->sched_time_in;
         
         $sched_in = Carbon::createFromFormat('Y-m-d H:i', $this->row->dtr_date .' '. $time)->format('Y-m-d H:i:s.u');
@@ -57,7 +59,15 @@ class ClockOutOT extends Log
             })
             ->where('cstate','=','OT/Out')
             ->first();
-        
+        */
+
+        $repo = app(DTRRepository::class);
+        $emp_repo = app(EmployeeRepository::class);
+
+        $employee = $emp_repo->getEmployee($this->row->emp_id);
+      
+        $self = $repo->getLog($employee,$this->row,'OT/Out');
+
         $this->log = $self;
 
     }
