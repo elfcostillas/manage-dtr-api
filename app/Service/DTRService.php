@@ -297,7 +297,7 @@ class DTRService
 
         $result = DB::table('edtr_raw') //edtr_detailed edtr_raw
             ->where('biometric_id','=',$employee->biometric_id)
-            ->select('line_id','punch_date','punch_time','cstate','src','src_id','emp_id','biometric_id','new_cstate')
+            ->select('line_id','punch_date','punch_time','cstate','src','src_id','emp_id','biometric_id','new_cstate','new_punch_time')
             ->whereBetween('punch_date',[$date_from->format('Y-m-d'),$date_to->format('Y-m-d')]);
 
             // dd($result->toSql(),$result->getBindings());
