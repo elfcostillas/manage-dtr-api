@@ -647,6 +647,9 @@ class DTRService
     public function handleUpdatelogRequest($row)
     {
         $new_arr = CustomRequest::filter('edtr_raw',$row);
+        if($new_arr['new_punch_time']==''){
+            $new_arr['new_punch_time'] = null;
+        }
 
         $result = DB::table('edtr_raw')
                 ->where('line_id', $row['line_id'])
