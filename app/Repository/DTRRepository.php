@@ -93,6 +93,9 @@ class DTRRepository
 
                 break;
             case 'C/Out' : 
+
+                $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_time_in;
+
                 if(is_null($row->time_in)){
                     return null;
                 }
