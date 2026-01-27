@@ -82,6 +82,7 @@ class ClockOut extends Log
       
         $self = $repo->getLog($employee,$this->row,'C/Out');
 
+
         $this->log = $self;
 
     }

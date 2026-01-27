@@ -29,7 +29,7 @@ class DTRRepository
                 })
                 ->leftJoin('work_schedules','edtr_detailed.schedule_id','=','work_schedules.id')
                 ->where('emp_id','=',$employee->id)
-                // ->where('dtr_date','=','2026-01-07')
+                // ->where('dtr_date','=','2026-01-22')
                 ->whereBetween('dtr_date',[$payroll_period->date_from,$payroll_period->date_to])
                 ->select(DB::raw("
                 edtr_detailed.*,
@@ -91,7 +91,7 @@ class DTRRepository
                 break;
             case 'C/Out' : 
 
-                $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_time_in;
+                $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_out_am;
 
                 if(is_null($row->time_in)){
                     return null;

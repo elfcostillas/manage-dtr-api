@@ -176,7 +176,6 @@ class DTRService
             $clock_out_obj = new ClockOut($row,$time_in,$nextLogin,$nextDaySched);
          
             $time_out = $clock_out_obj->getLog();
-
             // if($row->dtr_date == '2025-06-21'){
             //     dd($time_out);
             // }
