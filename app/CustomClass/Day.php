@@ -103,6 +103,7 @@ class Day
         }
 
         $this->log_object->late = $late_minutes;
+        $this->log_object->late_eq = round($late_minutes/60,2);
     }
 
     public function computeUnderTime()
