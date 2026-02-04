@@ -92,7 +92,6 @@ Route::prefix('timekeeping')->group(function(){
         Route::get('draw-logs/{period_id}/{emp_id}',[ManageDTRController::class,'drawLogs']);
         Route::post('draw-logs',[ManageDTRController::class,'drawLogs']);
         
-
         Route::get('compute-logs/{period_id}/{emp_id}',[ManageDTRController::class,'computeLogs']);
         Route::post('compute-logs',[ManageDTRController::class,'computeLogs']);
 

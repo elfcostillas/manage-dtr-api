@@ -90,13 +90,15 @@ class DTRRepository
 
                 break;
             case 'C/Out' : 
-
+                $from = $row->dtr_date .' '. $row->time_in;
+                
                 $to = $carbondate->addDay()->format('Y-m-d') .' '. $row->sched_out_am;
 
                 if(is_null($row->time_in)){
                     return null;
                 }
-                 $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+               
+                $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
                 $used =  DB::table('edtr_detailed')
                     ->select('time_out_id')
                     ->whereNotNull('time_out_id')
