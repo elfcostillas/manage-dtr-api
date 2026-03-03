@@ -38,25 +38,25 @@ class FTPRepository
 
         foreach($result->get() as $item){
             if($item->time_in_date != null && $item->time_in != null){
-                $flag1 = $this->checkIndB($item->time_in_date,$item->time_in,$item->emp_id); 
+                $flag1 = $this->checkIndB($item->time_in_date,$item->time_in,$item->emp_id,'C/In'); 
             }else{
                 $flag1 = false;
             }
 
             if($item->time_out_date != null && $item->time_out != null){
-                $flag2 = $this->checkIndB($item->time_out_date,$item->time_out,$item->emp_id); 
+                $flag2 = $this->checkIndB($item->time_out_date,$item->time_out,$item->emp_id,'C/Out'); 
             }else{
                 $flag2 = false;
             }
 
             if($item->ot_in_date != null && $item->ot_in != null){
-                $flag3 = $this->checkIndB($item->ot_in_date,$item->ot_in,$item->emp_id); 
+                $flag3 = $this->checkIndB($item->ot_in_date,$item->ot_in,$item->emp_id,'OT/In'); 
             }else{
                 $flag3 = false;
             }
 
             if($item->ot_out_date != null && $item->ot_out != null){
-                $flag4 = $this->checkIndB($item->ot_out_date,$item->ot_out,$item->emp_id); 
+                $flag4 = $this->checkIndB($item->ot_out_date,$item->ot_out,$item->emp_id,'OT/Out'); 
             }else{
                 $flag4 = false;
             }
@@ -72,12 +72,12 @@ class FTPRepository
         return $collection;
     }
 
-    public function checkIndB($punch_date,$punch_time,$emp_id)
+    public function checkIndB($punch_date,$punch_time,$emp_id,$cstate)
     {        
         $result = Logs::where('emp_id','=',$emp_id)
                 ->where('punch_date','=',$punch_date)
                 ->where('punch_time','=',$punch_time)
-                // ->where('punch_type','=','IN')
+                ->where('cstate','=',$cstate)
                 ->first();
 
         if($result){
