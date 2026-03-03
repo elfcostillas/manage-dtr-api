@@ -152,7 +152,7 @@ class FTPService
                 'new_cstate' => null,
             ];
 
-            $flag4 = DB::table('edtr_raw')->insert($time_in_ot_array);
+            $flag4 = DB::table('edtr_raw')->insert($time_out_ot_array);
         };
 
         return ($flag1 && $flag2 && $flag3 && $flag4);
