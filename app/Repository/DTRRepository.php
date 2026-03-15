@@ -98,7 +98,14 @@ class DTRRepository
                     return null;
                 }
                
-                $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+                // $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+
+                $raw_dtr->whereRaw(
+                    "t_stamp > ? AND punch_date < ?",
+                    [$from, $to]
+                );
+
+
                 $used =  DB::table('edtr_detailed')
                     ->select('time_out_id')
                     ->whereNotNull('time_out_id')
@@ -110,7 +117,12 @@ class DTRRepository
                 if(is_null($row->time_in)){
                     return null;
                 }
-                 $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+                //  $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+                $raw_dtr->whereRaw(
+                    "t_stamp > ? AND punch_date < ?",
+                    [$from, $to]
+                );
+
                 $used =  DB::table('edtr_detailed')
                     ->select('ot_in_id')
                     ->whereNotNull('ot_in_id')
@@ -123,7 +135,13 @@ class DTRRepository
                 if(is_null($row->time_in)){
                     return null;
                 }
-                 $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+                //  $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
+
+                $raw_dtr->whereRaw(
+                    "t_stamp > ? AND punch_date < ?",
+                    [$from, $to]
+                );
+
                 $used =  DB::table('edtr_detailed')
                     ->select('ot_out_id')
                     ->whereNotNull('ot_out_id')
@@ -173,11 +191,6 @@ class DTRRepository
 
             $raw_dtr->orderBy('punch_date','ASC')
                 ->orderBy('punch_time','ASC');
-
-            // if($type == 'C/Out')
-            // {
-            //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
-            // }
             
         // if($row->dtr_date == '2026-01-09' && $type == 'C/Out')
         // {
