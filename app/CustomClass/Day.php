@@ -160,6 +160,9 @@ class Day
         $hrs = $am_hrs + $pm_hrs;
 
         // if($hrs != 8 && (get_class($this) == 'App\CustomClass\RegularDay')){
+
+        $leaves = $this->getFiledLeaves();
+
         if(get_class($this) == 'App\CustomClass\RegularDay'){
             
             switch($this->indexDay()->shortEnglishDayOfWeek)
@@ -169,23 +172,33 @@ class Day
                 case 'Wed' :
                 case 'Thu' :
                 case 'Fri' :
-                    
+                    if(($hrs + $leaves) < 8)
+                    {
+                        $this->log_object->awol = 8 - $hrs - $leaves;
+                    } 
+
 
                     break;
                 case 'Sat' :
+                    if(($hrs + $leaves) < 8)
+                    {
+                        $this->log_object->awol = 8 - $hrs - $leaves;
+                    } 
+
                     break;
+
+                default :
+                    $this->log_object->awol = 0;
+                break;
             }
 
-            $leaves = $this->getFiledLeaves();
+            
 
             // $hrs += $leaves;
             // $date = Carbon::createFromFormat('Y-m-d',)
             //  dd($this->log_object)
 
-            if(($hrs + $leaves) < 8)
-            {
-                $this->log_object->awol = 8 - $hrs - $leaves;
-            } 
+           
 
         }
         
@@ -332,7 +345,7 @@ class Day
 
 
                     case 'Sun' :
-
+                            $this->log_object->awol = 0;
                         break;
                     
                 }

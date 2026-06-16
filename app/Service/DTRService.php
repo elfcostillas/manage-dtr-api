@@ -510,7 +510,20 @@ class DTRService
     public function handeFillOutLogs($emp_id,$period_id)
     {
         $employee = $this->emp_repo->getEmployee($emp_id);
-        $period = $this->payperiod_repo->find($period_id);
+        // $period = $this->payperiod_repo->find($period_id);//
+        if($employee->emp_level == 6){
+            if(is_object($period_id)){
+                $period = $period_id;
+            }else{
+                $period = $this->sg_payperiod_repo->find($period_id);
+            }
+        }else{
+            if(is_object($period_id)){
+                $period = $period_id;
+            }else{
+                $period = $this->payperiod_repo->find($period_id);
+            }
+        }
 
         $this->dtr_repo->clearMadeLogs($period,$employee);
 
