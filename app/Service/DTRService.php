@@ -148,6 +148,8 @@ class DTRService
             }
 
             $ot_out_out_obj = new ClockOutOTAM($row);
+
+            
             $ot_out_out = $ot_out_out_obj->getLog();
 
             if(!is_null($ot_out_out)){
@@ -176,6 +178,7 @@ class DTRService
             $clock_out_obj = new ClockOut($row,$time_in,$nextLogin,$nextDaySched);
          
             $time_out = $clock_out_obj->getLog();
+
             // if($row->dtr_date == '2025-06-21'){
             //     dd($time_out);
             // }
@@ -554,7 +557,13 @@ class DTRService
     public function handeClearingLogs($emp_id,$period_id)
     {
         $employee = $this->emp_repo->getEmployee($emp_id);
-        $period = $this->payperiod_repo->find($period_id);
+        
+        if($employee->emp_level == 6){
+            $period = $this->sg_payperiod_repo->find($period_id);
+        }else{
+            $period = $this->payperiod_repo->find($period_id);
+        }
+        
 
         $logs = $this->dtr_repo->getGeneratedLogs($period,$employee);
 

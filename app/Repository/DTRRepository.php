@@ -97,11 +97,13 @@ class DTRRepository
                 if(is_null($row->time_in)){
                     return null;
                 }
+
+                
                
                 // $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
 
                 $raw_dtr->whereRaw(
-                    "t_stamp > ? AND punch_date < ?",
+                    "t_stamp > ? AND t_stamp < ?",
                     [$from, $to]
                 );
 
@@ -119,7 +121,7 @@ class DTRRepository
                 }
                 //  $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
                 $raw_dtr->whereRaw(
-                    "t_stamp > ? AND punch_date < ?",
+                    "t_stamp > ? AND t_stamp < ?",
                     [$from, $to]
                 );
 
@@ -138,7 +140,7 @@ class DTRRepository
                 //  $raw_dtr->whereRaw(DB::raw("t_stamp between '".$from."' and '".$to."' "));
 
                 $raw_dtr->whereRaw(
-                    "t_stamp > ? AND punch_date < ?",
+                    "t_stamp > ? AND t_stamp < ?",
                     [$from, $to]
                 );
 
@@ -196,6 +198,8 @@ class DTRRepository
         // {
         //     dd($raw_dtr->toSql(),$raw_dtr->getBindings());
         // }
+
+       
         return $raw_dtr->first();
         
     }

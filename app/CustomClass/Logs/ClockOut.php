@@ -46,6 +46,8 @@ class ClockOut extends Log
         
         $start = $this->time_in->t_stamp ?? $sched_in;
 
+        
+
         if(is_null($this->nextSchedLogin))
         {
             $this->nextSchedLogin =  Carbon::createFromFormat('Y-m-d H:i', $this->row->dtr_date .' '.'12:00')->addDay();
