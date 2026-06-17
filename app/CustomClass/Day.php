@@ -129,8 +129,7 @@ class Day
             $final_ut_mins = $multiplier * 30;
         }
 
-
-        $this->log_object->under_time = $final_ut_mins;
+        $this->log_object->under_time = is_null($this->log_object->hol_code) ? 0 : $final_ut_mins;
     }
 
     public function computeHours()
