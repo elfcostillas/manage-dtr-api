@@ -355,10 +355,10 @@ class Day
             
         }else{
             $this->computeUnderTime();
-            $this->computeHours();
+            // $this->computeHours();
 
-            $this->computeNightDiff();
-            $this->computeOverTime();
+            // $this->computeNightDiff();
+            // $this->computeOverTime();
         }
 
         $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
