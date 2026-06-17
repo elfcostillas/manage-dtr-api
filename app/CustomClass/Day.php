@@ -149,11 +149,15 @@ class Day
             }
         }
         
-
-        if($this->actual_time_out < $this->sched_pm_time_in){
-            $pm_hrs = 0;
-        }else{
-            $pm_hrs = 4;
+        $pm_hrs = 0;
+        
+        if(!is_null($this->actual_time_out)) 
+        {
+            if($this->actual_time_out < $this->sched_pm_time_in){
+                $pm_hrs = 0;
+            }else{
+                $pm_hrs = 4;
+            }
         }
 
         $hrs = $am_hrs + $pm_hrs;
@@ -355,6 +359,7 @@ class Day
             
         }else{
             $this->computeUnderTime();
+            
             $this->computeHours();
 
             // $this->computeNightDiff();
