@@ -355,7 +355,7 @@ class Day
             
         }else{
             $this->computeUnderTime();
-            // $this->computeHours();
+            $this->computeHours();
 
             // $this->computeNightDiff();
             // $this->computeOverTime();
