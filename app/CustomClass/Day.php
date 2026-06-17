@@ -118,6 +118,8 @@ class Day
             $ut_mins += ($ut_am->i + ($ut_am->h * 60));
         }
 
+       
+
         if(($this->actual_time_out > $this->sched_pm_time_in) && ($this->actual_time_out < $this->sched_time_out) ){
             $ut_pm = $this->sched_time_out->diff($this->actual_time_out);
             // dd($this->sched_time_out,$this->actual_time_out);
@@ -129,7 +131,7 @@ class Day
             $final_ut_mins = $multiplier * 30;
         }
 
-        $this->log_object->under_time = is_null($this->log_object->hol_code) ? 0 : $final_ut_mins;
+        $this->log_object->under_time = !is_null($this->log_object->hol_code) ? 0 : $final_ut_mins;
     }
 
     public function computeHours()
@@ -150,7 +152,7 @@ class Day
         }
         
         $pm_hrs = 0;
-        
+
         if(!is_null($this->actual_time_out)) 
         {
             if($this->actual_time_out < $this->sched_pm_time_in){
