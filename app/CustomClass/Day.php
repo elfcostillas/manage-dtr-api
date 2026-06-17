@@ -353,6 +353,12 @@ class Day
 
             // $this->log_object->awol = 8 - $leaves;
             
+        }else{
+            $this->computeUnderTime();
+            $this->computeHours();
+
+            $this->computeNightDiff();
+            $this->computeOverTime();
         }
 
         $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
