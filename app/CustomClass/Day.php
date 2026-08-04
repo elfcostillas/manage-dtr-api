@@ -118,8 +118,6 @@ class Day
             $ut_mins += ($ut_am->i + ($ut_am->h * 60));
         }
 
-       
-
         if(($this->actual_time_out > $this->sched_pm_time_in) && ($this->actual_time_out < $this->sched_time_out) ){
             $ut_pm = $this->sched_time_out->diff($this->actual_time_out);
             // dd($this->sched_time_out,$this->actual_time_out);
@@ -131,7 +129,8 @@ class Day
             $final_ut_mins = $multiplier * 30;
         }
 
-        $this->log_object->under_time = !is_null($this->log_object->hol_code) ? 0 : $final_ut_mins;
+
+        $this->log_object->under_time = $final_ut_mins;
     }
 
     public function computeHours()
@@ -151,15 +150,11 @@ class Day
             }
         }
         
-        $pm_hrs = 0;
 
-        if(!is_null($this->actual_time_out)) 
-        {
-            if($this->actual_time_out < $this->sched_pm_time_in){
-                $pm_hrs = 0;
-            }else{
-                $pm_hrs = 4;
-            }
+        if($this->actual_time_out < $this->sched_pm_time_in){
+            $pm_hrs = 0;
+        }else{
+            $pm_hrs = 4;
         }
 
         $hrs = $am_hrs + $pm_hrs;
@@ -181,7 +176,6 @@ class Day
                     {
                         $this->log_object->awol = 8 - $hrs - $leaves;
                     } 
-
 
                     break;
                 case 'Sat' :
@@ -219,7 +213,7 @@ class Day
     public function getFiledLeaves() : Float
     {
         $leave = DB::table('filed_leaves_vw')
-            ->select(DB::raw("ifnull(SUM(with_pay + without_pay),0) as hrs"))
+            ->select(DB::raw("ifnull(SUM(ifnull(with_pay,0)+ ifnull(without_pay,0)),0) as hrs"))
             ->where('biometric_id','=',$this->log_object->biometric_id)
             ->where('leave_date','=',$this->log_object->dtr_date)
             ->first();
@@ -359,13 +353,6 @@ class Day
 
             // $this->log_object->awol = 8 - $leaves;
             
-        }else{
-            $this->computeUnderTime();
-            
-            $this->computeHours();
-
-            // $this->computeNightDiff();
-            // $this->computeOverTime();
         }
 
         $new_arr = CustomRequest::filter('edtr_detailed',(array) $this->log_object);
