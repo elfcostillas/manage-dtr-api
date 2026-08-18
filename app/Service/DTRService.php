@@ -493,6 +493,7 @@ class DTRService
                     break;
 
                 case 'sphol' :
+                   
                     $day = new SpecialHoliday($day,$employee,$period);
                     break;
 
