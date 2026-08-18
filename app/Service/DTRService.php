@@ -501,6 +501,7 @@ class DTRService
                 // case 'dblsphol' : break;
                 
                 default :
+                   
                     $day = new RegularDay($day,$employee,$period);
                     break;
             }
@@ -624,14 +625,24 @@ class DTRService
            
             if(is_null($row->hol_code)){
                 $ids = $this->dtr_repo->makeRawLogCinCout($row);
-                $row->time_in = $row->sched_time_in;
-                $row->time_in_id = $ids['time_in'];
+                
+                if($row->sched_time_in == 'RD')
+                {
+                    $row->time_in = null;
+                    $row->time_in_id  = null;
+                    $row->time_out = null;
+                    $row->time_out_id = null;
+                }else{
+                    $row->time_in = $row->sched_time_in;
+                    $row->time_in_id = $ids['time_in'];
 
-                $row->time_out = $row->sched_time_out;
-                $row->time_out_id = $ids['time_out'];
+                    $row->time_out = $row->sched_time_out;
+                    $row->time_out_id = $ids['time_out'];
 
+                    
+                }
+              
                 $new_arr = CustomRequest::filter('edtr_detailed',(array) $row);
-
 
                 DB::table('edtr_detailed')
                     ->where('id', $row->id)
